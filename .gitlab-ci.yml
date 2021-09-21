@@ -1,0 +1,83 @@
+include:
+  - template: SAST.gitlab-ci.yml
+
+variables:
+  DOCKER_DRIVER: overlay2
+  IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+
+stages:
+  - test
+  - build
+  - deployment
+
+py-lint:
+  image: python:3.7.11-bullseye
+  only:
+    - main
+  stage: test
+  before_script:
+    - pip install --no-warn-script-location --no-cache-dir -r requirements.txt
+    - mypy --install-types --non-interactive ./src/main.py
+  script:
+    - pylint ./src/main.py
+    - mypy --config-file=./mypy.ini ./src/main.py
+
+docker_build:
+  image: docker:20.10.8
+  only:
+    - main
+  stage: build
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker build -t $IMAGE_TAG .
+    - docker push $IMAGE_TAG
+    - docker rmi $IMAGE_TAG
+    - docker system prune --volumes -f
+
+docker-deploy:
+  image: alpine:latest
+  only:
+    - main
+  stage: deployment
+  script:
+    - chmod og= $ID_ED25519
+    - apk update && apk add openssh-client
+    - ssh -i $ID_ED25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY"
+    - ssh -i $ID_ED25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker pull $IMAGE_TAG"
+    - ssh -i $ID_ED25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker stop sinopac_srv || true"
+    - ssh -i $ID_ED25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker system prune --volumes -f"
+    - |
+      ssh -i $ID_ED25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker run --name sinopac_srv \
+      --network tocvlan \
+      --ip=172.20.10.221 \
+      --log-opt max-size=10m \
+      --log-opt max-file=3 \
+      --restart always \
+      -e PYPORT=$PYPORT \
+      -e GOLANGPORT=$GOLANGPORT \
+      -e TRADEID=$TRADEID \
+      -e TRADEPASS=$TRADEPASS \
+      -e CAPASS=$CAPASS \
+      -e TZ="Asia/Taipei" \
+      -dt $IMAGE_TAG"
+  when: manual
+  environment:
+    name: review/$CI_COMMIT_REF_NAME
+    on_stop: stop_production
+
+stop_production:
+  image: alpine:latest
+  only:
+    - main
+  stage: deployment
+  script:
+    - chmod og= $ID_ED25519
+    - apk update && apk add openssh-client
+    - ssh -i $ID_ED25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker stop sinopac_srv"
+    - ssh -i $ID_ED25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker system prune --volumes -f"
+    - ssh -i $ID_ED25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker rmi $IMAGE_TAG"
+  when: manual
+  environment:
+    name: review/$CI_COMMIT_REF_NAME
+    action: stop
