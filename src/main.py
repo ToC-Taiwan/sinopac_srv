@@ -1,8 +1,9 @@
 #!/usr/local/bin/python
 # -*- coding: utf-8 -*-
 '''SINOPAC PYTHON API FORWARDER'''
+from re import search
 from datetime import datetime
-from threading import Thread
+import threading
 import time
 import logging
 import sys
@@ -15,7 +16,7 @@ import shioaji as sj
 from flask import Flask,  request, jsonify, make_response
 from flasgger import Swagger
 from waitress import serve
-from shioaji import BidAskSTKv1, TickSTKv1, Exchange, constant, error
+from shioaji import BidAskSTKv1, TickSTKv1, Exchange, constant, error, TickFOPv1
 from protobuf import tradeevent_pb2, bidask_pb2, streamtick_pb2, \
     traderecord_pb2, snapshot_pb2, volumerank_pb2, entiretick_pb2
 
@@ -27,8 +28,9 @@ swagger = Swagger(api)
 token = sj.Shioaji()
 trade_bot_port = sys.argv[2]
 deployment = os.getenv('DEPLOYMENT')
+mutex = threading.Lock()
 
-SERVER_STATUS = False
+SERVER_STATUS = int()
 TRADE_BOT_HOST = str()
 TRADE_ID = sys.argv[3]
 TRADE_PASSWD = sys.argv[4]
@@ -37,6 +39,7 @@ CA_PASSWD = sys.argv[5]
 ALL_STOCK_NUM_LIST: typing.List[str] = []
 BIDASK_SUB_LIST: typing.List[str] = []
 QUOTE_SUB_LIST: typing.List[str] = []
+FUTURE_SUB_LIST: typing.List[str] = []
 ERROR_TIMES = int()
 
 
@@ -101,6 +104,7 @@ def snapshot():
         description: Success Response
     '''
     contracts = []
+    contracts.append(token.Contracts.Indexs.TSE.TSE001)
     for stock in ALL_STOCK_NUM_LIST:
         contracts.append(token.Contracts.Stocks[stock])
     snapshots = token.snapshots(contracts)
@@ -307,7 +311,7 @@ def bid_ask():
     ''' Subscribe bid-ask
     ---
     tags:
-      - subscribe
+      - Subscribe bid-ask
     parameters:
       - in: body
         name: stock array
@@ -348,7 +352,7 @@ def un_bid_ask():
     ''' unSubscribe bid-ask
     ---
     tags:
-      - subscribe
+      - Subscribe bid-ask
     parameters:
       - in: body
         name: stock array
@@ -389,7 +393,7 @@ def unstream_bid_ask_all():
     ''' Unubscribe all bid-ask
     ---
     tags:
-      - subscribe
+      - Subscribe bid-ask
     responses:
       200:
         description: Success Response
@@ -412,7 +416,7 @@ def stream():
     ''' Subscribe streamtick
     ---
     tags:
-      - subscribe
+      - Subscribe streamtick
     parameters:
       - in: body
         name: stock array
@@ -429,7 +433,7 @@ def stream():
     stocks = body['stock_num_arr']
     for stock in stocks:
         QUOTE_SUB_LIST.append(stock)
-        logging.info('subscribe %s', stock)
+        logging.info('subscribe stock %s', stock)
         token.quote.subscribe(
             token.Contracts.Stocks[stock],
             quote_type=sj.constant.QuoteType.Tick,
@@ -443,7 +447,7 @@ def un_stream():
     ''' unSubscribe streamtick
     ---
     tags:
-      - subscribe
+      - Subscribe streamtick
     parameters:
       - in: body
         name: stock array
@@ -460,7 +464,7 @@ def un_stream():
     stocks = body['stock_num_arr']
     for stock in stocks:
         QUOTE_SUB_LIST.remove(stock)
-        logging.info('unsubscribe %s', stock)
+        logging.info('unsubscribe stock %s', stock)
         token.quote.unsubscribe(
             token.Contracts.Stocks[stock],
             quote_type=sj.constant.QuoteType.Tick,
@@ -474,7 +478,7 @@ def unstream_all():
     ''' Unubscribe all streamtick
     ---
     tags:
-      - subscribe
+      - Subscribe streamtick
     responses:
       200:
         description: Success Response
@@ -482,13 +486,108 @@ def unstream_all():
     global QUOTE_SUB_LIST  # pylint: disable=global-statement
     if len(QUOTE_SUB_LIST) != 0:
         for stock in QUOTE_SUB_LIST:
-            logging.info('unsubscribe %s', stock)
+            logging.info('unsubscribe stock %s', stock)
             token.quote.unsubscribe(
                 token.Contracts.Stocks[stock],
                 quote_type=sj.constant.QuoteType.Tick,
                 version=sj.constant.QuoteVersion.v1
             )
         QUOTE_SUB_LIST = []
+    return jsonify({'status': 'success'})
+
+
+@ api.route('/pyapi/subscribe/future', methods=['POST'])
+def sub_future():
+    ''' Subscribe future
+    ---
+    tags:
+      - Subscribe future
+    parameters:
+      - in: body
+        name: future array
+        description: future array
+        required: true
+        schema:
+          $ref: '#/definitions/FutureNumArr'
+    responses:
+      200:
+        description: Success Response
+    definitions:
+      FutureNumArr:
+        type: object
+        properties:
+          future_num_arr:
+            type: array
+            items:
+              $ref: '#/definitions/FutureNum'
+      FutureNum:
+        type: string
+    '''
+    global FUTURE_SUB_LIST  # pylint: disable=global-statement
+    body = request.get_json()
+    futures = body['future_num_arr']
+    for future in futures:
+        FUTURE_SUB_LIST.append(future)
+        logging.info('subscribe future %s', future)
+        token.quote.subscribe(
+            token.Contracts.Futures[future],
+            quote_type=sj.constant.QuoteType.Tick,
+            version=sj.constant.QuoteVersion.v1
+        )
+    return jsonify({'status': 'success'})
+
+
+@ api.route('/pyapi/unsubscribe/future', methods=['POST'])
+def unsub_future():
+    ''' unSubscribe future
+    ---
+    tags:
+      - Subscribe future
+    parameters:
+      - in: body
+        name: future array
+        description: future array
+        required: true
+        schema:
+          $ref: '#/definitions/FutureNumArr'
+    responses:
+      200:
+        description: Success Response
+    '''
+    global FUTURE_SUB_LIST  # pylint: disable=global-statement
+    body = request.get_json()
+    futures = body['future_num_arr']
+    for future in futures:
+        FUTURE_SUB_LIST.remove(future)
+        logging.info('unsubscribe future %s', future)
+        token.quote.unsubscribe(
+            token.Contracts.Futures[future],
+            quote_type=sj.constant.QuoteType.Tick,
+            version=sj.constant.QuoteVersion.v1
+        )
+    return jsonify({'status': 'success'})
+
+
+@ api.route('/pyapi/unsubscribeall/future', methods=['GET'])
+def unstream_all_future():
+    ''' Unubscribe all future
+    ---
+    tags:
+      - Subscribe future
+    responses:
+      200:
+        description: Success Response
+    '''
+    global FUTURE_SUB_LIST  # pylint: disable=global-statement
+    if len(FUTURE_SUB_LIST) != 0:
+        for future in FUTURE_SUB_LIST:
+            logging.info('unsubscribe future %s', future)
+            token.quote.unsubscribe(
+                token.Contracts.Futures[future],
+                quote_type=sj.constant.QuoteType.Tick,
+                version=sj.constant.QuoteVersion.v1
+            )
+        FUTURE_SUB_LIST = []
     return jsonify({'status': 'success'})
 
 
@@ -503,7 +602,7 @@ def restart():
         description: Success Response
     '''
     if deployment == 'docker':
-        Thread(target=run_pkill).start()
+        threading.Thread(target=run_pkill).start()
         return jsonify({'status': 'success'})
     return jsonify({'status': 'you should be in the docker container'})
 
@@ -570,7 +669,7 @@ def test_streamtick():
     req = session.get(trade_bot_url, headers={
         'Content-Type': 'application/json', 'count': body['count']})
     for data in req.json():
-        Thread(target=streamtick_fake_data, args=[
+        threading.Thread(target=streamtick_fake_data, args=[
             data['stock_num'], data['close'], body['total_time']]).start()
     return jsonify({'status': 'success'})
 
@@ -746,7 +845,7 @@ def status():
         token.update_status(timeout=0, cb=status_callback)
     except error.TokenError:
         send_token_expired_event()
-        Thread(target=run_pkill).start()
+        threading.Thread(target=run_pkill).start()
     return jsonify({'status': 'success'})
 
 
@@ -994,7 +1093,7 @@ def connection_err():
     global ERROR_TIMES  # pylint: disable=global-statement
     ERROR_TIMES += 1
     if ERROR_TIMES > 30:
-        Thread(target=run_pkill).start()
+        threading.Thread(target=run_pkill).start()
 
 
 def reset_err():
@@ -1011,25 +1110,45 @@ def reset_err():
 
 def place_order_callback(order_state: constant.OrderState, order: dict):
     '''Place order callback'''
-    logging.info('Order back: %s %s %s %s %s %s %.2f %d %d %s',
-                 order_state,
-                 order['operation']['op_type'],
-                 order['operation']['op_code'],
-                 order['operation']['op_msg'],
-                 order['order']['id'],
-                 order['order']['action'],
-                 order['order']['price'],
-                 order['order']['quantity'],
-                 order['status']['exchange_ts'],
-                 order['contract']['code'],
-                 )
+    if search('DEAL', order_state) is None:
+        logging.info('Order: %s %s %s %s %s %s %.2f %d %d %s',
+                     order_state,
+                     order['operation']['op_type'],
+                     order['operation']['op_code'],
+                     order['operation']['op_msg'],
+                     order['order']['id'],
+                     order['order']['action'],
+                     order['order']['price'],
+                     order['order']['quantity'],
+                     order['status']['exchange_ts'],
+                     order['contract']['code'],
+                     )
+    else:
+        logging.info('Deal: %s %s %s %s %s %.2f %d %d',
+                     order_state,
+                     order['trade_id'],
+                     order['exchange_seq'],
+                     order['action'],
+                     order['code'],
+                     order['price'],
+                     order['quantity'],
+                     order['ts'],
+                     )
+
+
+def future_quote_callback(exchange: Exchange, tick: TickFOPv1):
+    logging.info(exchange)
+    logging.info(tick)
 
 
 def login_callback(security_type: constant.SecurityType):
     '''login event callback.'''
-    global SERVER_STATUS  # pylint: disable=global-statement
-    if security_type.value == 'STK':
-        SERVER_STATUS = True
+    with mutex:
+        global SERVER_STATUS  # pylint: disable=global-statement
+        if security_type.value == 'STK' or security_type.value == 'IND' or security_type.value == 'FUT' or security_type.value == 'OPT':
+            SERVER_STATUS += 1
+            logging.warning('login step: %d/4, %s',
+                            SERVER_STATUS, security_type)
 
 
 def sino_login():
@@ -1043,6 +1162,7 @@ def sino_login():
     token.quote.set_event_callback(event_callback)
     token.quote.set_on_tick_stk_v1_callback(quote_callback_v1)
     token.quote.set_on_bidask_stk_v1_callback(bid_ask_callback)
+    token.quote.set_on_tick_fop_v1_callback(future_quote_callback)
 
 
 if __name__ == '__main__':
@@ -1050,9 +1170,9 @@ if __name__ == '__main__':
         TRADE_BOT_HOST = 'toc-trader.tocraw.com'
     fill_all_stock_list()
     sino_login()
-    Thread(target=reset_err).start()
+    threading.Thread(target=reset_err).start()
     api_port = sys.argv[1]
     while True:
-        if SERVER_STATUS is True:
+        if SERVER_STATUS == 4:
             break
     serve(api, host='0.0.0.0', port=api_port)
