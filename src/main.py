@@ -53,7 +53,6 @@ def import_stock():
       200:
         description: Success Response
     '''
-    global ALL_STOCK_NUM_LIST  # pylint: disable=global-statement
     response = []
     for row in ALL_STOCK_NUM_LIST:
         contract = token.Contracts.Stocks[row]
@@ -333,7 +332,6 @@ def bid_ask():
       StockNum:
         type: string
     '''
-    global BIDASK_SUB_LIST  # pylint: disable=global-statement
     body = request.get_json()
     stocks = body['stock_num_arr']
     for stock in stocks:
@@ -374,7 +372,6 @@ def un_bid_ask():
       StockNum:
         type: string
     '''
-    global BIDASK_SUB_LIST  # pylint: disable=global-statement
     body = request.get_json()
     stocks = body['stock_num_arr']
     for stock in stocks:
@@ -428,7 +425,6 @@ def stream():
       200:
         description: Success Response
     '''
-    global QUOTE_SUB_LIST  # pylint: disable=global-statement
     body = request.get_json()
     stocks = body['stock_num_arr']
     for stock in stocks:
@@ -459,7 +455,6 @@ def un_stream():
       200:
         description: Success Response
     '''
-    global QUOTE_SUB_LIST  # pylint: disable=global-statement
     body = request.get_json()
     stocks = body['stock_num_arr']
     for stock in stocks:
@@ -523,7 +518,6 @@ def sub_future():
       FutureNum:
         type: string
     '''
-    global FUTURE_SUB_LIST  # pylint: disable=global-statement
     body = request.get_json()
     futures = body['future_num_arr']
     for future in futures:
@@ -554,7 +548,6 @@ def unsub_future():
       200:
         description: Success Response
     '''
-    global FUTURE_SUB_LIST  # pylint: disable=global-statement
     body = request.get_json()
     futures = body['future_num_arr']
     for future in futures:
@@ -1145,7 +1138,7 @@ def login_callback(security_type: constant.SecurityType):
     '''login event callback.'''
     with mutex:
         global SERVER_STATUS  # pylint: disable=global-statement
-        if security_type.value == 'STK' or security_type.value == 'IND' or security_type.value == 'FUT' or security_type.value == 'OPT':
+        if security_type.value in ('STK', 'IND', 'FUT', 'OPT'):
             SERVER_STATUS += 1
             logging.warning('login step: %d/4, %s',
                             SERVER_STATUS, security_type)

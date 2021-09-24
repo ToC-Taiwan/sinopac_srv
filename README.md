@@ -15,15 +15,14 @@
 ### Initialize
 
 ```sh
-pip freeze > requirements.txt
-```
-
-```sh
 pip install --no-warn-script-location --no-cache-dir -r requirements.txt
 mypy --install-types --non-interactive ./src/main.py
 ```
 
+### Reset all dependency
+
 ```sh
+pip freeze > requirements.txt
 pip uninstall -y -r requirements.txt
 ```
 
@@ -34,7 +33,7 @@ git fetch --prune --prune-tags origin
 git check-ignore *
 ```
 
-### From Sino Original Pip
+### Update dependency
 
 ```sh
 pip install \
@@ -42,7 +41,10 @@ pip install \
     --no-cache-dir \
     requests shioaji Flask flasgger waitress \
     autopep8 protobuf mypy types-protobuf mypy-protobuf \
-    pylint pylint-protobuf simplejson
+    pylint pylint-protobuf simplejson && \
+mypy --install-types --non-interactive ./src/main.py
+pip freeze > requirements.txt
+
 ```
 
 ## Authors
