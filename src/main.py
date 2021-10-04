@@ -721,6 +721,61 @@ def buy():
     return jsonify({'status': 'fail'})
 
 
+@ api.route('/pyapi/trade/sell_first', methods=['POST'])
+def sell_first():
+    ''' Sell stock first
+    ---
+    tags:
+      - trade
+    parameters:
+      - in: body
+        name: order
+        description: Sell stock first
+        required: true
+        schema:
+          $ref: '#/definitions/Order'
+    responses:
+      200:
+        description: Success Response
+    definitions:
+      Order:
+        type: object
+        properties:
+          stock:
+            type: string
+          price:
+            type: number
+          quantity:
+            type: integer
+    '''
+    token.activate_ca(
+        ca_path='./data/ca_sinopac.pfx',
+        ca_passwd=CA_PASSWD,
+        person_id=TRADE_ID,
+    )
+    body = request.get_json()
+    contract = token.Contracts.Stocks[body['stock']]
+    order = token.Order(
+        price=body['price'],
+        quantity=body['quantity'],
+        action=sj.constant.Action.Sell,
+        price_type=sj.constant.StockPriceType.LMT,
+        order_type=sj.constant.TFTOrderType.ROD,
+        order_lot=sj.constant.TFTStockOrderLot.Common,
+        first_sell=sj.constant.StockFirstSell.Yes,
+        account=token.stock_account
+    )
+    trade = token.place_order(contract, order)
+    if trade is not None and trade.order.id != '':
+        if trade.status.status == constant.Status.Cancelled:
+            trade.status.status = 'Canceled'
+        return jsonify({
+            'status': trade.status.status,
+            'order_id': trade.order.id,
+        })
+    return jsonify({'status': 'fail'})
+
+
 @ api.route('/pyapi/trade/sell', methods=['POST'])
 def sell():
     ''' Sell stock
