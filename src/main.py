@@ -197,6 +197,63 @@ def entiretick():
     return resp
 
 
+@ api.route('/pyapi/history/tse_entiretick', methods=['POST'])
+def tse_entiretick():
+    ''' Get all tse tick in one date
+    ---
+    tags:
+      - data
+    parameters:
+      - in: body
+        name: fetch date
+        description: fetch date
+        required: true
+        schema:
+          $ref: '#/definitions/FetchDate'
+    responses:
+      200:
+        description: Success Response
+    definitions:
+      FetchDate:
+        type: object
+        properties:
+          date:
+            type: string
+    '''
+    response = entiretick_pb2.EntireTickArrProto()
+    body = request.get_json()
+    ticks = token.ticks(
+        contract=token.Contracts.Indexs.TSE.TSE001,
+        date=body['date']
+    )
+    tmp_length = []
+    total_count = len(ticks.ts)
+    tmp_length.append(len(ticks.close))
+    tmp_length.append(len(ticks.volume))
+    tmp_length.append(len(ticks.bid_price))
+    tmp_length.append(len(ticks.bid_volume))
+    tmp_length.append(len(ticks.ask_price))
+    tmp_length.append(len(ticks.ask_volume))
+    for length in tmp_length:
+        if length - total_count != 0:
+            resp = make_response(response.SerializeToString())
+            resp.headers['Content-Type'] = 'application/protobuf'
+            return resp
+    for pos in range(total_count):
+        tmp = entiretick_pb2.EntireTickProto()
+        tmp.ts = ticks.ts[pos]
+        tmp.close = ticks.close[pos]
+        tmp.volume = ticks.volume[pos]
+        tmp.bid_price = ticks.bid_price[pos]
+        tmp.bid_volume = ticks.bid_volume[pos]
+        tmp.ask_price = ticks.ask_price[pos]
+        tmp.ask_volume = ticks.ask_volume[pos]
+        response.data.append(tmp)
+    resp = make_response(response.SerializeToString())
+    resp.headers['Content-Type'] = 'application/protobuf'
+    return resp
+
+
 @ api.route('/pyapi/history/lastcount', methods=['POST'])
 def lastcount():
     ''' Get stock's last count
@@ -860,17 +917,29 @@ def cancel():
     )
     cancel_order = None
     body = request.get_json()
-    token.update_status()
-    orders = token.list_trades()
-    for order in orders:
-        if order.status.id == body['order_id']:
-            cancel_order = order
+    times = int()
+    while True:
+        token.update_status()
+        orders = token.list_trades()
+        for order in orders:
+            if order.status.id == body['order_id']:
+                cancel_order = order
+        if cancel_order is not None or times >= 10:
+            break
+        times += 1
     if cancel_order is None:
         return jsonify({'status': 'fail'})
     token.cancel_order(cancel_order)
-    token.update_status()
-    if cancel_order.status.status == constant.Status.Cancelled:
-        return jsonify({'status': 'success'})
+    times = 0
+    while True:
+        if times >= 10:
+            break
+        token.update_status()
+        orders = token.list_trades()
+        for order in orders:
+            if order.status.id == body['order_id'] and order.status.status == constant.Status.Cancelled:
+                return jsonify({'status': 'success'})
+        times += 1
     return jsonify({'status': 'fail'})
 
 
