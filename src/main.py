@@ -21,7 +21,7 @@ from protobuf import tradeevent_pb2, bidask_pb2, streamtick_pb2, \
     traderecord_pb2, snapshot_pb2, volumerank_pb2, entiretick_pb2
 
 log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-logging.basicConfig(level=logging.INFO, format=log_format, stream=sys.stdout)
+logging.basicConfig(level=logging.INFO, format=log_format)
 session = requests.Session()
 api = Flask(__name__)
 swagger = Swagger(api)
