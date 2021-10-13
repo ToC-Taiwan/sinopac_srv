@@ -21,7 +21,7 @@ from protobuf import tradeevent_pb2, bidask_pb2, streamtick_pb2, \
     traderecord_pb2, snapshot_pb2, volumerank_pb2, entiretick_pb2
 
 log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-logging.basicConfig(level=logging.INFO, format=log_format)
+logging.basicConfig(level=logging.INFO, format=log_format, stream=sys.stdout)
 session = requests.Session()
 api = Flask(__name__)
 swagger = Swagger(api)
@@ -70,7 +70,9 @@ def import_stock():
             'day_trade': contract.day_trade
         }
         response.append(tmp)
-    return jsonify(response)
+    if len(response) != 0:
+        return jsonify(response)
+    return jsonify({'status': 'fail'})
 
 
 @ api.route('/pyapi/basic/update-basic', methods=['GET'])
@@ -303,7 +305,9 @@ def lastcount():
             'close': last_count.close,
         }
         response.append(tmp)
-    return jsonify(response)
+    if len(response) != 0:
+        return jsonify(response)
+    return jsonify({'status': 'fail'})
 
 
 @ api.route('/pyapi/trade/volumerank', methods=['GET'])
@@ -1121,7 +1125,7 @@ def fill_all_stock_list():
 
 def run_pkill():
     '''Restart in container'''
-    time.sleep(3)
+    time.sleep(1)
     os._exit(0)  # pylint: disable=protected-access
 
 
