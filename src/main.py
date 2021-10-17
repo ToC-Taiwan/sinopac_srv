@@ -199,6 +199,52 @@ def entiretick():
     return resp
 
 
+@ api.route('/pyapi/history/kbar', methods=['POST'])
+def fetch_kbar():
+    ''' Get all kbar in date range
+    ---
+    tags:
+      - data
+    parameters:
+      - in: body
+        name: stock with date range
+        description: Stock with date range
+        required: true
+        schema:
+          $ref: '#/definitions/StockWithDateRange'
+    responses:
+      200:
+        description: Success Response
+    definitions:
+      StockWithDateRange:
+        type: object
+        properties:
+          stock_num:
+            type: string
+          start_date:
+            type: string
+          end_date:
+            type: string
+    '''
+    body = request.get_json()
+    kbar = token.kbars(
+        contract=token.Contracts.Stocks[body['stock_num']],
+        start=body['start_date'],
+        end=body['end_date'],
+    )
+    tmp_length = []
+    total_count = len(kbar.ts)
+    tmp_length.append(len(kbar.Close))
+    tmp_length.append(len(kbar.Open))
+    tmp_length.append(len(kbar.High))
+    tmp_length.append(len(kbar.Low))
+    tmp_length.append(len(kbar.Volume))
+    for length in tmp_length:
+        if length - total_count != 0:
+            return jsonify({'status': 'fail'})
+    return jsonify({'status': 'success'})
+
+
 @ api.route('/pyapi/history/tse_entiretick', methods=['POST'])
 def tse_entiretick():
     ''' Get all tse tick in one date
@@ -326,9 +372,11 @@ def volumerank():
         description: Success Response
     '''
     rank_count = request.headers['X-Count']
+    req_date = request.headers['X-Date']
     ranks = token.scanners(
         scanner_type=sj.constant.ScannerType.VolumeRank,
-        count=rank_count
+        count=rank_count,
+        date=req_date,
     )
     response = volumerank_pb2.VolumeRankArrProto()
     for result in ranks:
