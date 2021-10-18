@@ -18,7 +18,7 @@ from flasgger import Swagger
 from waitress import serve
 from shioaji import BidAskSTKv1, TickSTKv1, Exchange, constant, error, TickFOPv1
 from protobuf import tradeevent_pb2, bidask_pb2, streamtick_pb2, \
-    traderecord_pb2, snapshot_pb2, volumerank_pb2, entiretick_pb2
+    traderecord_pb2, snapshot_pb2, volumerank_pb2, entiretick_pb2, kbar_pb2
 
 log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 logging.basicConfig(level=logging.INFO, format=log_format, stream=sys.stdout)
@@ -226,6 +226,7 @@ def fetch_kbar():
           end_date:
             type: string
     '''
+    response = kbar_pb2.KbarArrProto()
     body = request.get_json()
     kbar = token.kbars(
         contract=token.Contracts.Stocks[body['stock_num']],
@@ -241,8 +242,21 @@ def fetch_kbar():
     tmp_length.append(len(kbar.Volume))
     for length in tmp_length:
         if length - total_count != 0:
-            return jsonify({'status': 'fail'})
-    return jsonify({'status': 'success'})
+            resp = make_response(response.SerializeToString())
+            resp.headers['Content-Type'] = 'application/protobuf'
+            return resp
+    for pos in range(total_count):
+        tmp = kbar_pb2.KbarProto()
+        tmp.ts = kbar.ts[pos]
+        tmp.Close = kbar.Close[pos]
+        tmp.Open = kbar.Open[pos]
+        tmp.High = kbar.High[pos]
+        tmp.Low = kbar.Low[pos]
+        tmp.Volume = kbar.Volume[pos]
+        response.data.append(tmp)
+    resp = make_response(response.SerializeToString())
+    resp.headers['Content-Type'] = 'application/protobuf'
+    return resp
 
 
 @ api.route('/pyapi/history/tse_entiretick', methods=['POST'])
