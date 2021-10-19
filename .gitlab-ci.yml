@@ -51,8 +51,6 @@ docker-deploy:
       ssh -i $ID_ED25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker run --name sinopac_srv \
       --network tocvlan \
       --ip=172.20.10.221 \
-      --log-opt max-size=10m \
-      --log-opt max-file=3 \
       --restart always \
       -e PYPORT=$PYPORT \
       -e GOLANGPORT=$GOLANGPORT \
