@@ -27,11 +27,15 @@ api = Flask(__name__)
 swagger = Swagger(api)
 token = sj.Shioaji()
 trade_bot_port = sys.argv[2]
-deployment = os.getenv('DEPLOYMENT')
 mutex = threading.Lock()
+deployment = os.getenv('DEPLOYMENT')
+
+TRADE_BOT_HOST = str()
+if deployment == 'docker':
+    TRADE_BOT_HOST = 'toc-trader.tocraw.com'
 
 SERVER_STATUS = int()
-TRADE_BOT_HOST = str()
+RE_LOGGING = False
 TRADE_ID = sys.argv[3]
 TRADE_PASSWD = sys.argv[4]
 CA_PASSWD = sys.argv[5]
@@ -52,6 +56,8 @@ def import_stock():
     responses:
       200:
         description: Success Response
+      500:
+        description: Server Not Ready
     '''
     response = []
     for row in ALL_STOCK_NUM_LIST:
@@ -84,6 +90,8 @@ def update_basic():
     responses:
       200:
         description: Success Response
+      500:
+        description: Server Not Ready
     '''
     try:
         subprocess.run(['./scripts/update_basic.sh'], check=True)
@@ -103,6 +111,8 @@ def snapshot():
     responses:
       200:
         description: Success Response
+      500:
+        description: Server Not Ready
     '''
     contracts = []
     contracts.append(token.Contracts.Indexs.TSE.TSE001)
@@ -156,6 +166,8 @@ def entiretick():
     responses:
       200:
         description: Success Response
+      500:
+        description: Server Not Ready
     definitions:
       StockWithDate:
         type: object
@@ -215,6 +227,8 @@ def fetch_kbar():
     responses:
       200:
         description: Success Response
+      500:
+        description: Server Not Ready
     definitions:
       StockWithDateRange:
         type: object
@@ -275,6 +289,8 @@ def tse_entiretick():
     responses:
       200:
         description: Success Response
+      500:
+        description: Server Not Ready
     definitions:
       FetchDate:
         type: object
@@ -336,6 +352,8 @@ def lastcount():
     responses:
       200:
         description: Success Response
+      500:
+        description: Server Not Ready
     definitions:
       StockArr:
         type: object
@@ -384,6 +402,8 @@ def volumerank():
     responses:
       200:
         description: Success Response
+      500:
+        description: Server Not Ready
     '''
     rank_count = request.headers['X-Count']
     req_date = request.headers['X-Date']
@@ -444,6 +464,8 @@ def bid_ask():
     responses:
       200:
         description: Success Response
+      500:
+        description: Server Not Ready
     definitions:
       StockNumArr:
         type: object
@@ -484,6 +506,8 @@ def un_bid_ask():
     responses:
       200:
         description: Success Response
+      500:
+        description: Server Not Ready
     definitions:
       StockNumArr:
         type: object
@@ -517,6 +541,8 @@ def unstream_bid_ask_all():
     responses:
       200:
         description: Success Response
+      500:
+        description: Server Not Ready
     '''
     global BIDASK_SUB_LIST  # pylint: disable=global-statement
     if len(BIDASK_SUB_LIST) != 0:
@@ -547,6 +573,8 @@ def stream():
     responses:
       200:
         description: Success Response
+      500:
+        description: Server Not Ready
     '''
     body = request.get_json()
     stocks = body['stock_num_arr']
@@ -577,6 +605,8 @@ def un_stream():
     responses:
       200:
         description: Success Response
+      500:
+        description: Server Not Ready
     '''
     body = request.get_json()
     stocks = body['stock_num_arr']
@@ -600,6 +630,8 @@ def unstream_all():
     responses:
       200:
         description: Success Response
+      500:
+        description: Server Not Ready
     '''
     global QUOTE_SUB_LIST  # pylint: disable=global-statement
     if len(QUOTE_SUB_LIST) != 0:
@@ -630,6 +662,8 @@ def sub_future():
     responses:
       200:
         description: Success Response
+      500:
+        description: Server Not Ready
     definitions:
       FutureNumArr:
         type: object
@@ -670,6 +704,8 @@ def unsub_future():
     responses:
       200:
         description: Success Response
+      500:
+        description: Server Not Ready
     '''
     body = request.get_json()
     futures = body['future_num_arr']
@@ -693,6 +729,8 @@ def unstream_all_future():
     responses:
       200:
         description: Success Response
+      500:
+        description: Server Not Ready
     '''
     global FUTURE_SUB_LIST  # pylint: disable=global-statement
     if len(FUTURE_SUB_LIST) != 0:
@@ -716,6 +754,8 @@ def restart():
     responses:
       200:
         description: Success Response
+      500:
+        description: Server Not Ready
     '''
     if deployment == 'docker':
         threading.Thread(target=run_pkill).start()
@@ -739,6 +779,8 @@ def set_trade_bot_host():
     responses:
       200:
         description: Success Response
+      500:
+        description: Server Not Ready
     definitions:
       TradeBotHost:
         type: string
@@ -766,6 +808,8 @@ def test_streamtick():
     responses:
       200:
         description: Success Response
+      500:
+        description: Server Not Ready
     definitions:
       CountWithTotalTime:
         type: object
@@ -806,6 +850,8 @@ def buy():
     responses:
       200:
         description: Success Response
+      500:
+        description: Server Not Ready
     definitions:
       Order:
         type: object
@@ -860,6 +906,8 @@ def sell_first():
     responses:
       200:
         description: Success Response
+      500:
+        description: Server Not Ready
     definitions:
       Order:
         type: object
@@ -915,6 +963,8 @@ def sell():
     responses:
       200:
         description: Success Response
+      500:
+        description: Server Not Ready
     definitions:
       Order:
         type: object
@@ -969,6 +1019,8 @@ def cancel():
     responses:
       200:
         description: Success Response
+      500:
+        description: Server Not Ready
     definitions:
       OrderID:
         type: object
@@ -1018,6 +1070,8 @@ def status():
     responses:
       200:
         description: Success Response
+      500:
+        description: Server Not Ready
     '''
     token.activate_ca(
         ca_path='./data/ca_sinopac.pfx',
@@ -1077,7 +1131,7 @@ def status_callback(reply: typing.List[sj.order.Trade]):
 def quote_callback_v1(exchange: Exchange, tick: TickSTKv1):
     '''Sinopac's quiote callback v1.'''
     if TRADE_BOT_HOST == '':
-        logging.warning('TRADE_BOT_HOST is empty')
+        logging.warning('TRADE_BOT_HOST is empty, quote_callback_v1')
         return
     trade_bot_url = 'http://'+TRADE_BOT_HOST+':' + \
         trade_bot_port+'/trade-bot/data/streamtick'
@@ -1118,7 +1172,7 @@ def quote_callback_v1(exchange: Exchange, tick: TickSTKv1):
 def bid_ask_callback(exchange: Exchange, bidask: BidAskSTKv1):
     '''Sinopac's bidask callback.'''
     if TRADE_BOT_HOST == '':
-        logging.warning('TRADE_BOT_HOST is empty')
+        logging.warning('TRADE_BOT_HOST is empty, bid_ask_callback')
         return
     trade_bot_url = 'http://'+TRADE_BOT_HOST+':' + \
         trade_bot_port+'/trade-bot/data/bid-ask'
@@ -1148,7 +1202,7 @@ def bid_ask_callback(exchange: Exchange, bidask: BidAskSTKv1):
 def event_callback(resp_code: int, event_code: int, info: str, event: str):
     '''Sinopac's event callback.'''
     if TRADE_BOT_HOST == '':
-        logging.warning('TRADE_BOT_HOST is empty')
+        logging.warning('TRADE_BOT_HOST is empty, event_callback')
         return
     trade_bot_url = 'http://'+TRADE_BOT_HOST+':' + \
         trade_bot_port+'/trade-bot/trade-event'
@@ -1194,7 +1248,7 @@ def run_pkill():
 def streamtick_fake_data(stock_num: str, close: float, total_time: int):
     '''Fake Data generator'''
     if TRADE_BOT_HOST == '':
-        logging.warning('TRADE_BOT_HOST is empty')
+        logging.warning('TRADE_BOT_HOST is empty, streamtick_fake_data')
         return
     trade_bot_url = 'http://'+TRADE_BOT_HOST+':' + \
         trade_bot_port+'/trade-bot/data/streamtick'
@@ -1237,7 +1291,7 @@ def streamtick_fake_data(stock_num: str, close: float, total_time: int):
 def send_trade_record(record):
     '''Sinopac status's callback.'''
     if TRADE_BOT_HOST == '':
-        logging.warning('TRADE_BOT_HOST is empty')
+        logging.warning('TRADE_BOT_HOST is empty, send_trade_record')
         return
     trade_bot_url = 'http://'+TRADE_BOT_HOST+':' + \
         trade_bot_port+'/trade-bot/trade-record'
@@ -1253,7 +1307,7 @@ def send_trade_record(record):
 def send_token_expired_event():
     '''Sinopac's event callback.'''
     if TRADE_BOT_HOST == '':
-        logging.warning('TRADE_BOT_HOST is empty')
+        logging.warning('TRADE_BOT_HOST is empty, send_token_expired_event')
         return
     trade_bot_url = 'http://'+TRADE_BOT_HOST+':' + \
         trade_bot_port+'/trade-bot/trade-event'
@@ -1346,16 +1400,55 @@ def sino_login():
     token.quote.set_on_tick_stk_v1_callback(quote_callback_v1)
     token.quote.set_on_bidask_stk_v1_callback(bid_ask_callback)
     token.quote.set_on_tick_fop_v1_callback(future_quote_callback)
+    while True:
+        if SERVER_STATUS == 4:
+            return
+
+
+@ api.route('/pyapi/trade/logout', methods=['GET'])
+def sino_logout():
+    ''' Shioaji logout
+    ---
+    tags:
+      - status
+    responses:
+      200:
+        description: Success Response
+      500:
+        description: Server Not Ready
+    '''
+    global SERVER_STATUS  # pylint: disable=global-statement
+    token.logout()
+    SERVER_STATUS = 0
+    return jsonify({'status': 'success'})
+
+
+def sino_re_login():
+    '''Shioaji re login'''
+    global SERVER_STATUS, RE_LOGGING  # pylint: disable=global-statement
+    RE_LOGGING = True
+    token.logout()
+    SERVER_STATUS = 0
+    sino_login()
+    RE_LOGGING = False
+    return jsonify({'status': 'success'})
+
+
+def check_login_status():
+    '''Login into Sinopac'''
+    if SERVER_STATUS != 4:
+        logging.warning('shioaji not ready')
+        if RE_LOGGING is False:
+            sino_re_login()
+            return None
+        resp = make_response({'status': 'shioaji not ready'}, 500)
+        return resp
+    return None
 
 
 if __name__ == '__main__':
-    if deployment == 'docker':
-        TRADE_BOT_HOST = 'toc-trader.tocraw.com'
     fill_all_stock_list()
-    sino_login()
     threading.Thread(target=reset_err).start()
-    api_port = sys.argv[1]
-    while True:
-        if SERVER_STATUS == 4:
-            break
-    serve(api, host='0.0.0.0', port=api_port)
+    sino_login()
+    api.before_request(check_login_status)
+    serve(api, host='0.0.0.0', port=sys.argv[1])
