@@ -1429,7 +1429,7 @@ def health_check():
     ''' Server health check
     ---
     tags:
-      - status
+      - system
     responses:
       200:
         description: Success Response
