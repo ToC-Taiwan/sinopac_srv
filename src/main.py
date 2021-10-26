@@ -35,6 +35,7 @@ if deployment == 'docker':
     TRADE_BOT_HOST = 'toc-trader.tocraw.com'
 
 SERVER_STATUS = int()
+UP_TIME = int()
 RE_LOGGING = False
 TRADE_ID = sys.argv[3]
 TRADE_PASSWD = sys.argv[4]
@@ -1423,6 +1424,24 @@ def sino_logout():
     return jsonify({'status': 'success'})
 
 
+@ api.route('/pyapi/system/healthcheck', methods=['GET'])
+def health_check():
+    ''' Server health check
+    ---
+    tags:
+      - status
+    responses:
+      200:
+        description: Success Response
+      500:
+        description: Server Not Ready
+    '''
+    return jsonify({
+        'status': 'success',
+        'up_time': UP_TIME,
+    })
+
+
 def sino_re_login():
     '''Shioaji re login'''
     global SERVER_STATUS, RE_LOGGING  # pylint: disable=global-statement
@@ -1435,7 +1454,7 @@ def sino_re_login():
 
 
 def check_login_status():
-    '''Login into Sinopac'''
+    '''API interceptor'''
     if SERVER_STATUS != 4:
         logging.warning('shioaji not ready')
         if RE_LOGGING is False:
@@ -1446,9 +1465,18 @@ def check_login_status():
     return None
 
 
+def server_up_time():
+    '''Record server up time'''
+    global UP_TIME  # pylint: disable=global-statement
+    while True:
+        time.sleep(1)
+        UP_TIME += 1
+
+
 if __name__ == '__main__':
     fill_all_stock_list()
     threading.Thread(target=reset_err).start()
+    threading.Thread(target=server_up_time).start()
     sino_login()
     api.before_request(check_login_status)
     serve(api, host='0.0.0.0', port=sys.argv[1])
