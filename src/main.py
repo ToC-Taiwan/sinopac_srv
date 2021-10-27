@@ -864,11 +864,6 @@ def buy():
           quantity:
             type: integer
     '''
-    token.activate_ca(
-        ca_path='./data/ca_sinopac.pfx',
-        ca_passwd=CA_PASSWD,
-        person_id=TRADE_ID,
-    )
     body = request.get_json()
     contract = token.Contracts.Stocks[body['stock']]
     order = token.Order(
@@ -920,11 +915,6 @@ def sell_first():
           quantity:
             type: integer
     '''
-    token.activate_ca(
-        ca_path='./data/ca_sinopac.pfx',
-        ca_passwd=CA_PASSWD,
-        person_id=TRADE_ID,
-    )
     body = request.get_json()
     contract = token.Contracts.Stocks[body['stock']]
     order = token.Order(
@@ -977,11 +967,6 @@ def sell():
           quantity:
             type: integer
     '''
-    token.activate_ca(
-        ca_path='./data/ca_sinopac.pfx',
-        ca_passwd=CA_PASSWD,
-        person_id=TRADE_ID,
-    )
     body = request.get_json()
     contract = token.Contracts.Stocks[body['stock']]
     order = token.Order(
@@ -1029,11 +1014,6 @@ def cancel():
           order_id:
             type: string
     '''
-    token.activate_ca(
-        ca_path='./data/ca_sinopac.pfx',
-        ca_passwd=CA_PASSWD,
-        person_id=TRADE_ID,
-    )
     cancel_order = None
     body = request.get_json()
     times = int()
@@ -1074,11 +1054,6 @@ def status():
       500:
         description: Server Not Ready
     '''
-    token.activate_ca(
-        ca_path='./data/ca_sinopac.pfx',
-        ca_passwd=CA_PASSWD,
-        person_id=TRADE_ID,
-    )
     try:
         token.update_status(timeout=0, cb=status_callback)
     except error.TokenError:
@@ -1403,7 +1378,12 @@ def sino_login():
     token.quote.set_on_tick_fop_v1_callback(future_quote_callback)
     while True:
         if SERVER_STATUS == 4:
-            return
+            break
+    token.activate_ca(
+        ca_path='./data/ca_sinopac.pfx',
+        ca_passwd=CA_PASSWD,
+        person_id=TRADE_ID,
+    )
 
 
 @ api.route('/pyapi/trade/logout', methods=['GET'])
@@ -1438,7 +1418,7 @@ def health_check():
     '''
     return jsonify({
         'status': 'success',
-        'up_time': UP_TIME,
+        'up_time_min': UP_TIME,
     })
 
 
@@ -1469,7 +1449,7 @@ def server_up_time():
     '''Record server up time'''
     global UP_TIME  # pylint: disable=global-statement
     while True:
-        time.sleep(1)
+        time.sleep(60)
         UP_TIME += 1
 
 
