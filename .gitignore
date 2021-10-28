@@ -139,6 +139,7 @@ cython_debug/
 
 .vscode
 pylint_result
-logs
 mypy_result
 *.stats
+logs/*
+!.gitkeep

@@ -1027,7 +1027,9 @@ def cancel():
             break
         times += 1
     if cancel_order is None:
-        return jsonify({'status': 'fail'})
+        return jsonify({'status': 'none'})
+    if cancel_order.status.status == constant.Status.Cancelled:
+        return jsonify({'status': 'already'})
     token.cancel_order(cancel_order)
     times = 0
     while True:
@@ -1040,6 +1042,37 @@ def cancel():
                 return jsonify({'status': 'success'})
         times += 1
     return jsonify({'status': 'fail'})
+
+
+@ api.route('/pyapi/trade/history', methods=['GET'])
+def trade_history():
+    ''' Order history
+    ---
+    tags:
+      - trade
+    responses:
+      200:
+        description: Success Response
+      500:
+        description: Server Not Ready
+    '''
+    response = []
+    token.update_status()
+    orders = token.list_trades()
+    if len(orders) == 0:
+        return jsonify({'status': 'none', 'orders': response, })
+    for order in orders:
+        tmp = {
+            'status': order.status.status,
+            'code': order.contract.code,
+            'action': order.order.action,
+            'price': order.order.price,
+            'quantity': order.order.quantity,
+            'order_id': order.order.id,
+            'order_time': datetime.strftime(order.status.order_datetime, '%Y-%m-%d %H:%M:%S')
+        }
+        response.append(tmp)
+    return jsonify({'status': 'success', 'orders': response, })
 
 
 @ api.route('/pyapi/trade/status', methods=['GET'])
