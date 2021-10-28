@@ -1027,7 +1027,7 @@ def cancel():
             break
         times += 1
     if cancel_order is None:
-        return jsonify({'status': 'none'})
+        return jsonify({'status': 'not found'})
     if cancel_order.status.status == constant.Status.Cancelled:
         return jsonify({'status': 'already'})
     token.cancel_order(cancel_order)
@@ -1060,7 +1060,7 @@ def trade_history():
     token.update_status()
     orders = token.list_trades()
     if len(orders) == 0:
-        return jsonify({'status': 'none', 'orders': response, })
+        return jsonify({'status': 'not found', 'orders': response, })
     for order in orders:
         tmp = {
             'status': order.status.status,
@@ -1093,26 +1093,6 @@ def status():
         send_token_expired_event()
         threading.Thread(target=run_pkill).start()
     return jsonify({'status': 'success'})
-
-
-# def place_order_callback(reply: sj.order.Trade):
-#     '''Sinopac place order's callback.'''
-#     result = traderecord_pb2.TradeRecordArrProto()
-#     res = traderecord_pb2.TradeRecordProto()
-#     if reply.status.status == 'Cancelled':
-#         reply.status.status = 'Canceled'
-#     if reply.status.order_datetime is None:
-#         reply.status.order_datetime = datetime.now()
-#     res.code = reply.contract.code
-#     res.action = reply.order.action
-#     res.price = reply.order.price
-#     res.quantity = reply.order.quantity
-#     res.id = reply.status.id
-#     res.status = reply.status.status
-#     res.order_time = datetime.strftime(
-#         reply.status.order_datetime, '%Y-%m-%d %H:%M:%S')
-#     result.data.append(res)
-#     send_trade_record(result.SerializeToString())
 
 
 def status_callback(reply: typing.List[sj.order.Trade]):
