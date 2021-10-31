@@ -5,6 +5,8 @@ from re import search
 from datetime import datetime
 import threading
 import time
+import string
+import random
 import logging
 import sys
 import csv
@@ -29,6 +31,7 @@ token = sj.Shioaji()
 trade_bot_port = sys.argv[2]
 mutex = threading.Lock()
 deployment = os.getenv('DEPLOYMENT')
+server_token = ''.join(random.choice(string.ascii_letters) for x in range(25))
 
 TRADE_BOT_HOST = str()
 if deployment == 'docker':
@@ -1432,6 +1435,7 @@ def health_check():
     return jsonify({
         'status': 'success',
         'up_time_min': UP_TIME,
+        'server_token': server_token,
     })
 
 
@@ -1470,6 +1474,7 @@ if __name__ == '__main__':
     fill_all_stock_list()
     threading.Thread(target=reset_err).start()
     threading.Thread(target=server_up_time).start()
+    logging.info('Server token: %s', server_token)
     sino_login()
     api.before_request(check_login_status)
     serve(api, host='0.0.0.0', port=sys.argv[1])
