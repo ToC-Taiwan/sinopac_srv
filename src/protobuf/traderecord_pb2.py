@@ -3,6 +3,7 @@
 # source: trade_bot_protobuf/src/traderecord.proto
 """Generated protocol buffer code."""
 from google.protobuf import descriptor as _descriptor
+from google.protobuf import descriptor_pool as _descriptor_pool
 from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
 from google.protobuf import symbol_database as _symbol_database
@@ -13,128 +14,12 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor.FileDescriptor(
-  name='trade_bot_protobuf/src/traderecord.proto',
-  package='trade_record_protobuf',
-  syntax='proto3',
-  serialized_options=b'Z\026pkg/models/traderecord',
-  create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n(trade_bot_protobuf/src/traderecord.proto\x12\x15trade_record_protobuf\"L\n\x13TradeRecordArrProto\x12\x35\n\x04\x64\x61ta\x18\x01 \x03(\x0b\x32\'.trade_record_protobuf.TradeRecordProto\"\x81\x01\n\x10TradeRecordProto\x12\x10\n\x08quantity\x18\x01 \x01(\x03\x12\r\n\x05price\x18\x02 \x01(\x01\x12\x0e\n\x06\x61\x63tion\x18\x03 \x01(\t\x12\x0c\n\x04\x63ode\x18\x04 \x01(\t\x12\n\n\x02id\x18\x05 \x01(\t\x12\x12\n\norder_time\x18\x06 \x01(\t\x12\x0e\n\x06status\x18\x07 \x01(\tB\x18Z\x16pkg/models/traderecordb\x06proto3'
-)
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n(trade_bot_protobuf/src/traderecord.proto\x12\x15trade_record_protobuf\"L\n\x13TradeRecordArrProto\x12\x35\n\x04\x64\x61ta\x18\x01 \x03(\x0b\x32\'.trade_record_protobuf.TradeRecordProto\"\x81\x01\n\x10TradeRecordProto\x12\x10\n\x08quantity\x18\x01 \x01(\x03\x12\r\n\x05price\x18\x02 \x01(\x01\x12\x0e\n\x06\x61\x63tion\x18\x03 \x01(\t\x12\x0c\n\x04\x63ode\x18\x04 \x01(\t\x12\n\n\x02id\x18\x05 \x01(\t\x12\x12\n\norder_time\x18\x06 \x01(\t\x12\x0e\n\x06status\x18\x07 \x01(\tB\x18Z\x16pkg/models/traderecordb\x06proto3')
 
 
 
-
-_TRADERECORDARRPROTO = _descriptor.Descriptor(
-  name='TradeRecordArrProto',
-  full_name='trade_record_protobuf.TradeRecordArrProto',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='data', full_name='trade_record_protobuf.TradeRecordArrProto.data', index=0,
-      number=1, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=67,
-  serialized_end=143,
-)
-
-
-_TRADERECORDPROTO = _descriptor.Descriptor(
-  name='TradeRecordProto',
-  full_name='trade_record_protobuf.TradeRecordProto',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='quantity', full_name='trade_record_protobuf.TradeRecordProto.quantity', index=0,
-      number=1, type=3, cpp_type=2, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='price', full_name='trade_record_protobuf.TradeRecordProto.price', index=1,
-      number=2, type=1, cpp_type=5, label=1,
-      has_default_value=False, default_value=float(0),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='action', full_name='trade_record_protobuf.TradeRecordProto.action', index=2,
-      number=3, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='code', full_name='trade_record_protobuf.TradeRecordProto.code', index=3,
-      number=4, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='id', full_name='trade_record_protobuf.TradeRecordProto.id', index=4,
-      number=5, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='order_time', full_name='trade_record_protobuf.TradeRecordProto.order_time', index=5,
-      number=6, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='status', full_name='trade_record_protobuf.TradeRecordProto.status', index=6,
-      number=7, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=146,
-  serialized_end=275,
-)
-
-_TRADERECORDARRPROTO.fields_by_name['data'].message_type = _TRADERECORDPROTO
-DESCRIPTOR.message_types_by_name['TradeRecordArrProto'] = _TRADERECORDARRPROTO
-DESCRIPTOR.message_types_by_name['TradeRecordProto'] = _TRADERECORDPROTO
-_sym_db.RegisterFileDescriptor(DESCRIPTOR)
-
+_TRADERECORDARRPROTO = DESCRIPTOR.message_types_by_name['TradeRecordArrProto']
+_TRADERECORDPROTO = DESCRIPTOR.message_types_by_name['TradeRecordProto']
 TradeRecordArrProto = _reflection.GeneratedProtocolMessageType('TradeRecordArrProto', (_message.Message,), {
   'DESCRIPTOR' : _TRADERECORDARRPROTO,
   '__module__' : 'trade_bot_protobuf.src.traderecord_pb2'
@@ -149,6 +34,12 @@ TradeRecordProto = _reflection.GeneratedProtocolMessageType('TradeRecordProto', 
   })
 _sym_db.RegisterMessage(TradeRecordProto)
 
+if _descriptor._USE_C_DESCRIPTORS == False:
 
-DESCRIPTOR._options = None
+  DESCRIPTOR._options = None
+  DESCRIPTOR._serialized_options = b'Z\026pkg/models/traderecord'
+  _TRADERECORDARRPROTO._serialized_start=67
+  _TRADERECORDARRPROTO._serialized_end=143
+  _TRADERECORDPROTO._serialized_start=146
+  _TRADERECORDPROTO._serialized_end=275
 # @@protoc_insertion_point(module_scope)

@@ -3,6 +3,7 @@
 # source: trade_bot_protobuf/src/tradeevent.proto
 """Generated protocol buffer code."""
 from google.protobuf import descriptor as _descriptor
+from google.protobuf import descriptor_pool as _descriptor_pool
 from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
 from google.protobuf import symbol_database as _symbol_database
@@ -13,73 +14,11 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor.FileDescriptor(
-  name='trade_bot_protobuf/src/tradeevent.proto',
-  package='trade_event_protobuf',
-  syntax='proto3',
-  serialized_options=b'Z\025pkg/models/tradeevent',
-  create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\'trade_bot_protobuf/src/tradeevent.proto\x12\x14trade_event_protobuf\"P\n\nEventProto\x12\x11\n\tresp_code\x18\x01 \x01(\x03\x12\x12\n\nevent_code\x18\x02 \x01(\x03\x12\x0c\n\x04info\x18\x03 \x01(\t\x12\r\n\x05\x65vent\x18\x04 \x01(\tB\x17Z\x15pkg/models/tradeeventb\x06proto3'
-)
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\'trade_bot_protobuf/src/tradeevent.proto\x12\x14trade_event_protobuf\"P\n\nEventProto\x12\x11\n\tresp_code\x18\x01 \x01(\x03\x12\x12\n\nevent_code\x18\x02 \x01(\x03\x12\x0c\n\x04info\x18\x03 \x01(\t\x12\r\n\x05\x65vent\x18\x04 \x01(\tB\x17Z\x15pkg/models/tradeeventb\x06proto3')
 
 
 
-
-_EVENTPROTO = _descriptor.Descriptor(
-  name='EventProto',
-  full_name='trade_event_protobuf.EventProto',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='resp_code', full_name='trade_event_protobuf.EventProto.resp_code', index=0,
-      number=1, type=3, cpp_type=2, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='event_code', full_name='trade_event_protobuf.EventProto.event_code', index=1,
-      number=2, type=3, cpp_type=2, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='info', full_name='trade_event_protobuf.EventProto.info', index=2,
-      number=3, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='event', full_name='trade_event_protobuf.EventProto.event', index=3,
-      number=4, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=65,
-  serialized_end=145,
-)
-
-DESCRIPTOR.message_types_by_name['EventProto'] = _EVENTPROTO
-_sym_db.RegisterFileDescriptor(DESCRIPTOR)
-
+_EVENTPROTO = DESCRIPTOR.message_types_by_name['EventProto']
 EventProto = _reflection.GeneratedProtocolMessageType('EventProto', (_message.Message,), {
   'DESCRIPTOR' : _EVENTPROTO,
   '__module__' : 'trade_bot_protobuf.src.tradeevent_pb2'
@@ -87,6 +26,10 @@ EventProto = _reflection.GeneratedProtocolMessageType('EventProto', (_message.Me
   })
 _sym_db.RegisterMessage(EventProto)
 
+if _descriptor._USE_C_DESCRIPTORS == False:
 
-DESCRIPTOR._options = None
+  DESCRIPTOR._options = None
+  DESCRIPTOR._serialized_options = b'Z\025pkg/models/tradeevent'
+  _EVENTPROTO._serialized_start=65
+  _EVENTPROTO._serialized_end=145
 # @@protoc_insertion_point(module_scope)
