@@ -1021,7 +1021,7 @@ def cancel():
     body = request.get_json()
     times = int()
     while True:
-        token.update_status()
+        mutex_update_status(-1)
         orders = token.list_trades()
         for order in orders:
             if order.status.id == body['order_id']:
@@ -1030,15 +1030,15 @@ def cancel():
             break
         times += 1
     if cancel_order is None:
-        return jsonify({'status': 'not found'})
+        return jsonify({'status': 'cancel order not found'})
     if cancel_order.status.status == constant.Status.Cancelled:
-        return jsonify({'status': 'already'})
+        return jsonify({'status': 'order already be canceled'})
     token.cancel_order(cancel_order)
     times = 0
     while True:
         if times >= 10:
             break
-        token.update_status()
+        mutex_update_status(-1)
         orders = token.list_trades()
         for order in orders:
             if order.status.id == body['order_id'] and order.status.status == constant.Status.Cancelled:
@@ -1060,7 +1060,7 @@ def trade_history():
         description: Server Not Ready
     '''
     response = []
-    token.update_status()
+    mutex_update_status(-1)
     orders = token.list_trades()
     if len(orders) == 0:
         return jsonify({'status': 'not found', 'orders': response, })
@@ -1091,11 +1091,20 @@ def status():
         description: Server Not Ready
     '''
     try:
-        token.update_status(timeout=0, cb=status_callback)
+        mutex_update_status(0)
     except error.TokenError:
         send_token_expired_event()
         threading.Thread(target=run_pkill).start()
     return jsonify({'status': 'success'})
+
+
+def mutex_update_status(timeout: int):
+    '''mutex for update status'''
+    with mutex:
+        if timeout == 0:
+            token.update_status(timeout=0, cb=status_callback)
+        elif timeout == -1:
+            token.update_status()
 
 
 def status_callback(reply: typing.List[sj.order.Trade]):
