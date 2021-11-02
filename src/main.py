@@ -19,6 +19,7 @@ from flask import Flask,  request, jsonify, make_response
 from flasgger import Swagger
 from waitress import serve
 from shioaji import BidAskSTKv1, TickSTKv1, Exchange, constant, error, TickFOPv1
+from shioaji.order import Trade
 from protobuf import tradeevent_pb2, bidask_pb2, streamtick_pb2, \
     traderecord_pb2, snapshot_pb2, volumerank_pb2, entiretick_pb2, kbar_pb2
 
@@ -44,6 +45,7 @@ TRADE_ID = sys.argv[3]
 TRADE_PASSWD = sys.argv[4]
 CA_PASSWD = sys.argv[5]
 
+HISTORY_ORDERS: typing.List[Trade] = []
 ALL_STOCK_NUM_LIST: typing.List[str] = []
 BIDASK_SUB_LIST: typing.List[str] = []
 QUOTE_SUB_LIST: typing.List[str] = []
@@ -1022,8 +1024,7 @@ def cancel():
     times = int()
     while True:
         mutex_update_status(-1)
-        orders = token.list_trades()
-        for order in orders:
+        for order in HISTORY_ORDERS:
             if order.status.id == body['order_id']:
                 cancel_order = order
         if cancel_order is not None or times >= 10:
@@ -1039,8 +1040,7 @@ def cancel():
         if times >= 10:
             break
         mutex_update_status(-1)
-        orders = token.list_trades()
-        for order in orders:
+        for order in HISTORY_ORDERS:
             if order.status.id == body['order_id'] and order.status.status == constant.Status.Cancelled:
                 return jsonify({'status': 'success'})
         times += 1
@@ -1061,15 +1061,19 @@ def trade_history():
     '''
     response = []
     mutex_update_status(-1)
-    orders = token.list_trades()
-    if len(orders) == 0:
-        return jsonify({'status': 'not found', 'orders': response, })
-    for order in orders:
+    if len(HISTORY_ORDERS) == 0:
+        return jsonify({'status': 'history not found', 'orders': response, })
+    for order in HISTORY_ORDERS:
+        order_price = int()
+        if order.status.modified_price != 0:
+            order_price = order.status.modified_price
+        else:
+            order_price = order.order.price
         tmp = {
             'status': order.status.status,
             'code': order.contract.code,
             'action': order.order.action,
-            'price': order.order.price,
+            'price': order_price,
             'quantity': order.order.quantity,
             'order_id': order.order.id,
             'order_time': datetime.strftime(order.status.order_datetime, '%Y-%m-%d %H:%M:%S')
@@ -1100,33 +1104,41 @@ def status():
 
 def mutex_update_status(timeout: int):
     '''mutex for update status'''
-    with mutex:
-        if timeout == 0:
-            token.update_status(timeout=0, cb=status_callback)
-        elif timeout == -1:
+    if timeout == 0:
+        token.update_status(timeout=0, cb=status_callback)
+    elif timeout == -1:
+        with mutex:
+            global HISTORY_ORDERS  # pylint: disable=global-statement
             token.update_status()
+            HISTORY_ORDERS = token.list_trades()
 
 
 def status_callback(reply: typing.List[sj.order.Trade]):
     '''Sinopac status's callback.'''
-    result = traderecord_pb2.TradeRecordArrProto()
-    if len(reply) != 0:
-        for order in reply:
-            res = traderecord_pb2.TradeRecordProto()
-            if order.status.status == constant.Status.Cancelled:
-                order.status.status = 'Canceled'
-            if order.status.order_datetime is None:
-                order.status.order_datetime = datetime.now()
-            res.code = order.contract.code
-            res.action = order.order.action
-            res.price = order.order.price
-            res.quantity = order.order.quantity
-            res.id = order.status.id
-            res.status = order.status.status
-            res.order_time = datetime.strftime(
-                order.status.order_datetime, '%Y-%m-%d %H:%M:%S')
-            result.data.append(res)
-        send_trade_record(result.SerializeToString())
+    with mutex:
+        result = traderecord_pb2.TradeRecordArrProto()
+        if len(reply) != 0:
+            for order in reply:
+                res = traderecord_pb2.TradeRecordProto()
+                if order.status.status == constant.Status.Cancelled:
+                    order.status.status = 'Canceled'
+                if order.status.order_datetime is None:
+                    order.status.order_datetime = datetime.now()
+                order_price = int()
+                if order.status.modified_price != 0:
+                    order_price = order.status.modified_price
+                else:
+                    order_price = order.order.price
+                res.code = order.contract.code
+                res.action = order.order.action
+                res.price = order_price
+                res.quantity = order.order.quantity
+                res.id = order.status.id
+                res.status = order.status.status
+                res.order_time = datetime.strftime(
+                    order.status.order_datetime, '%Y-%m-%d %H:%M:%S')
+                result.data.append(res)
+            send_trade_record(result.SerializeToString())
 
 
 def quote_callback_v1(exchange: Exchange, tick: TickSTKv1):
