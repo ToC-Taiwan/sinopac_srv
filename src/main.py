@@ -19,7 +19,6 @@ from flask import Flask,  request, jsonify, make_response
 from flasgger import Swagger
 from waitress import serve
 from shioaji import BidAskSTKv1, TickSTKv1, Exchange, constant, error, TickFOPv1
-from shioaji.order import Trade
 from protobuf import tradeevent_pb2, bidask_pb2, streamtick_pb2, \
     traderecord_pb2, snapshot_pb2, volumerank_pb2, entiretick_pb2, kbar_pb2
 
@@ -45,7 +44,7 @@ TRADE_ID = sys.argv[3]
 TRADE_PASSWD = sys.argv[4]
 CA_PASSWD = sys.argv[5]
 
-HISTORY_ORDERS: typing.List[Trade] = []
+HISTORY_ORDERS: typing.List[sj.order.Trade] = []
 ALL_STOCK_NUM_LIST: typing.List[str] = []
 BIDASK_SUB_LIST: typing.List[str] = []
 QUOTE_SUB_LIST: typing.List[str] = []
@@ -1102,6 +1101,43 @@ def status():
     return jsonify({'status': 'success'})
 
 
+@ api.route('/pyapi/trade/logout', methods=['GET'])
+def sino_logout():
+    ''' Shioaji logout
+    ---
+    tags:
+      - status
+    responses:
+      200:
+        description: Success Response
+      500:
+        description: Server Not Ready
+    '''
+    global SERVER_STATUS  # pylint: disable=global-statement
+    token.logout()
+    SERVER_STATUS = 0
+    return jsonify({'status': 'success'})
+
+
+@ api.route('/pyapi/system/healthcheck', methods=['GET'])
+def health_check():
+    ''' Server health check
+    ---
+    tags:
+      - system
+    responses:
+      200:
+        description: Success Response
+      500:
+        description: Server Not Ready
+    '''
+    return jsonify({
+        'status': 'success',
+        'up_time_min': UP_TIME,
+        'server_token': server_token,
+    })
+
+
 def mutex_update_status(timeout: int):
     '''mutex for update status'''
     if timeout == 0:
@@ -1421,43 +1457,6 @@ def sino_login():
         ca_passwd=CA_PASSWD,
         person_id=TRADE_ID,
     )
-
-
-@ api.route('/pyapi/trade/logout', methods=['GET'])
-def sino_logout():
-    ''' Shioaji logout
-    ---
-    tags:
-      - status
-    responses:
-      200:
-        description: Success Response
-      500:
-        description: Server Not Ready
-    '''
-    global SERVER_STATUS  # pylint: disable=global-statement
-    token.logout()
-    SERVER_STATUS = 0
-    return jsonify({'status': 'success'})
-
-
-@ api.route('/pyapi/system/healthcheck', methods=['GET'])
-def health_check():
-    ''' Server health check
-    ---
-    tags:
-      - system
-    responses:
-      200:
-        description: Success Response
-      500:
-        description: Server Not Ready
-    '''
-    return jsonify({
-        'status': 'success',
-        'up_time_min': UP_TIME,
-        'server_token': server_token,
-    })
 
 
 def sino_re_login():
