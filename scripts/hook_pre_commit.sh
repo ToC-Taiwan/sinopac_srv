@@ -59,11 +59,5 @@ if grep error mypy_result
 then
 	exit 1
 fi
-if ! ./scripts/update_basic.sh
-then
-    exit 1
-fi
-git add ./data/stock_otc.csv
-git add ./data/stock_tse.csv
 git clean -fxd
 exit 0

@@ -54,7 +54,7 @@ ERROR_TIMES = int()
 
 @ api.route('/pyapi/basic/importstock', methods=['GET'])
 def import_stock():
-    ''' Get All stock from csv
+    '''Get all stock from csv
     ---
     tags:
       - basic
@@ -88,7 +88,7 @@ def import_stock():
 
 @ api.route('/pyapi/basic/update-basic', methods=['GET'])
 def update_basic():
-    ''' Update stock information
+    '''Update stock information
     ---
     tags:
       - basic
@@ -109,7 +109,7 @@ def update_basic():
 
 @ api.route('/pyapi/basic/update/snapshot', methods=['GET'])
 def snapshot():
-    ''' Get all stock latest volume and close
+    '''Get all stock latest volume and close
     ---
     tags:
       - data
@@ -157,7 +157,7 @@ def snapshot():
 
 @ api.route('/pyapi/history/entiretick', methods=['POST'])
 def entiretick():
-    ''' Get all history tick in one date
+    '''Get all history tick in one date
     ---
     tags:
       - data
@@ -218,7 +218,7 @@ def entiretick():
 
 @ api.route('/pyapi/history/kbar', methods=['POST'])
 def fetch_kbar():
-    ''' Get all kbar in date range
+    '''Get all kbar in date range
     ---
     tags:
       - data
@@ -280,7 +280,7 @@ def fetch_kbar():
 
 @ api.route('/pyapi/history/tse_entiretick', methods=['POST'])
 def tse_entiretick():
-    ''' Get all tse tick in one date
+    '''Get all tse tick in one date
     ---
     tags:
       - data
@@ -339,7 +339,7 @@ def tse_entiretick():
 
 @ api.route('/pyapi/history/lastcount', methods=['POST'])
 def lastcount():
-    ''' Get stock's last count
+    '''Get stock's last count
     ---
     tags:
       - data
@@ -395,7 +395,7 @@ def lastcount():
 
 @ api.route('/pyapi/trade/volumerank', methods=['GET'])
 def volumerank():
-    ''' Get rank 200 volume and close
+    '''Get rank 200 volume and close
     ---
     tags:
       - data
@@ -455,7 +455,7 @@ def volumerank():
 
 @ api.route('/pyapi/subscribe/bid-ask', methods=['POST'])
 def bid_ask():
-    ''' Subscribe bid-ask
+    '''Subscribe bid-ask
     ---
     tags:
       - Subscribe bid-ask
@@ -497,7 +497,7 @@ def bid_ask():
 
 @ api.route('/pyapi/unsubscribe/bid-ask', methods=['POST'])
 def un_bid_ask():
-    ''' unSubscribe bid-ask
+    '''UnSubscribe bid-ask
     ---
     tags:
       - Subscribe bid-ask
@@ -539,7 +539,7 @@ def un_bid_ask():
 
 @ api.route('/pyapi/unsubscribeall/bid-ask', methods=['GET'])
 def unstream_bid_ask_all():
-    ''' Unubscribe all bid-ask
+    '''Unsubscribe all bid-ask
     ---
     tags:
       - Subscribe bid-ask
@@ -564,7 +564,7 @@ def unstream_bid_ask_all():
 
 @ api.route('/pyapi/subscribe/streamtick', methods=['POST'])
 def stream():
-    ''' Subscribe streamtick
+    '''Subscribe streamtick
     ---
     tags:
       - Subscribe streamtick
@@ -596,7 +596,7 @@ def stream():
 
 @ api.route('/pyapi/unsubscribe/streamtick', methods=['POST'])
 def un_stream():
-    ''' unSubscribe streamtick
+    '''UnSubscribe streamtick
     ---
     tags:
       - Subscribe streamtick
@@ -628,7 +628,7 @@ def un_stream():
 
 @ api.route('/pyapi/unsubscribeall/streamtick', methods=['GET'])
 def unstream_all():
-    ''' Unubscribe all streamtick
+    '''Unubscribe all streamtick
     ---
     tags:
       - Subscribe streamtick
@@ -653,7 +653,7 @@ def unstream_all():
 
 @ api.route('/pyapi/subscribe/future', methods=['POST'])
 def sub_future():
-    ''' Subscribe future
+    '''Subscribe future
     ---
     tags:
       - Subscribe future
@@ -695,7 +695,7 @@ def sub_future():
 
 @ api.route('/pyapi/unsubscribe/future', methods=['POST'])
 def unsub_future():
-    ''' unSubscribe future
+    '''UnSubscribe future
     ---
     tags:
       - Subscribe future
@@ -727,7 +727,7 @@ def unsub_future():
 
 @ api.route('/pyapi/unsubscribeall/future', methods=['GET'])
 def unstream_all_future():
-    ''' Unubscribe all future
+    '''Unubscribe all future
     ---
     tags:
       - Subscribe future
@@ -752,7 +752,7 @@ def unstream_all_future():
 
 @ api.route('/pyapi/system/restart', methods=['GET'])
 def restart():
-    ''' Restart
+    '''Restart
     ---
     tags:
       - system
@@ -770,7 +770,7 @@ def restart():
 
 @ api.route('/pyapi/system/tradebothost', methods=['POST'])
 def set_trade_bot_host():
-    ''' Set trade bot host
+    '''Set trade bot host
     ---
     tags:
       - system
@@ -799,7 +799,7 @@ def set_trade_bot_host():
 
 @ api.route('/pyapi/test/streamtick', methods=['POST'])
 def test_streamtick():
-    ''' Fake data for test
+    '''Fake data for test
     ---
     tags:
       - fakedata
@@ -841,7 +841,7 @@ def test_streamtick():
 
 @ api.route('/pyapi/trade/buy', methods=['POST'])
 def buy():
-    ''' Buy stock
+    '''Buy stock
     ---
     tags:
       - trade
@@ -892,7 +892,7 @@ def buy():
 
 @ api.route('/pyapi/trade/sell_first', methods=['POST'])
 def sell_first():
-    ''' Sell stock first
+    '''Sell stock first
     ---
     tags:
       - trade
@@ -944,7 +944,7 @@ def sell_first():
 
 @ api.route('/pyapi/trade/sell', methods=['POST'])
 def sell():
-    ''' Sell stock
+    '''Sell stock
     ---
     tags:
       - trade
@@ -995,7 +995,7 @@ def sell():
 
 @ api.route('/pyapi/trade/cancel', methods=['POST'])
 def cancel():
-    ''' Cancel order
+    '''Cancel order
     ---
     tags:
       - trade
@@ -1048,7 +1048,7 @@ def cancel():
 
 @ api.route('/pyapi/trade/history', methods=['GET'])
 def trade_history():
-    ''' Order history
+    '''Order history
     ---
     tags:
       - trade
@@ -1083,7 +1083,7 @@ def trade_history():
 
 @ api.route('/pyapi/trade/status', methods=['GET'])
 def status():
-    ''' Get order status
+    '''Get order status
     ---
     tags:
       - status
@@ -1101,27 +1101,9 @@ def status():
     return jsonify({'status': 'success'})
 
 
-@ api.route('/pyapi/trade/logout', methods=['GET'])
-def sino_logout():
-    ''' Shioaji logout
-    ---
-    tags:
-      - status
-    responses:
-      200:
-        description: Success Response
-      500:
-        description: Server Not Ready
-    '''
-    global SERVER_STATUS  # pylint: disable=global-statement
-    token.logout()
-    SERVER_STATUS = 0
-    return jsonify({'status': 'success'})
-
-
 @ api.route('/pyapi/system/healthcheck', methods=['GET'])
 def health_check():
-    ''' Server health check
+    '''Server health check
     ---
     tags:
       - system
@@ -1139,7 +1121,7 @@ def health_check():
 
 
 def mutex_update_status(timeout: int):
-    '''mutex for update status'''
+    '''Mutex for update status'''
     if timeout == 0:
         token.update_status(timeout=0, cb=status_callback)
     elif timeout == -1:
@@ -1150,7 +1132,7 @@ def mutex_update_status(timeout: int):
 
 
 def status_callback(reply: typing.List[sj.order.Trade]):
-    '''Sinopac status's callback.'''
+    '''Sinopac status's callback'''
     with mutex:
         result = traderecord_pb2.TradeRecordArrProto()
         if len(reply) != 0:
@@ -1178,7 +1160,7 @@ def status_callback(reply: typing.List[sj.order.Trade]):
 
 
 def quote_callback_v1(exchange: Exchange, tick: TickSTKv1):
-    '''Sinopac's quiote callback v1.'''
+    '''Sinopac's quiote callback v1'''
     if TRADE_BOT_HOST == '':
         logging.warning('TRADE_BOT_HOST is empty, quote_callback_v1')
         return
@@ -1219,7 +1201,7 @@ def quote_callback_v1(exchange: Exchange, tick: TickSTKv1):
 
 
 def bid_ask_callback(exchange: Exchange, bidask: BidAskSTKv1):
-    '''Sinopac's bidask callback.'''
+    '''Sinopac's bidask callback'''
     if TRADE_BOT_HOST == '':
         logging.warning('TRADE_BOT_HOST is empty, bid_ask_callback')
         return
@@ -1249,7 +1231,7 @@ def bid_ask_callback(exchange: Exchange, bidask: BidAskSTKv1):
 
 
 def event_callback(resp_code: int, event_code: int, info: str, event: str):
-    '''Sinopac's event callback.'''
+    '''Sinopac's event callback'''
     if TRADE_BOT_HOST == '':
         logging.warning('TRADE_BOT_HOST is empty, event_callback')
         return
@@ -1274,6 +1256,10 @@ def fill_all_stock_list():
     '''Fill ALL_STOCK_NUM_LIST'''
     global ALL_STOCK_NUM_LIST  # pylint: disable=global-statement
     ALL_STOCK_NUM_LIST = []
+    try:
+        subprocess.run(['./scripts/update_basic.sh'], check=True)
+    except subprocess.CalledProcessError:
+        run_pkill()
     with open('./data/stock_tse.csv', newline='', encoding='utf-8') as csvfile:
         rows = csv.reader(csvfile)
         for row in rows:
@@ -1295,7 +1281,7 @@ def run_pkill():
 
 
 def streamtick_fake_data(stock_num: str, close: float, total_time: int):
-    '''Fake Data generator'''
+    '''Fake data generator'''
     if TRADE_BOT_HOST == '':
         logging.warning('TRADE_BOT_HOST is empty, streamtick_fake_data')
         return
@@ -1338,7 +1324,7 @@ def streamtick_fake_data(stock_num: str, close: float, total_time: int):
 
 
 def send_trade_record(record):
-    '''Sinopac status's callback.'''
+    '''Sinopac status's callback'''
     if TRADE_BOT_HOST == '':
         logging.warning('TRADE_BOT_HOST is empty, send_trade_record')
         return
@@ -1354,7 +1340,7 @@ def send_trade_record(record):
 
 
 def send_token_expired_event():
-    '''Sinopac's event callback.'''
+    '''Sinopac's event callback'''
     if TRADE_BOT_HOST == '':
         logging.warning('TRADE_BOT_HOST is empty, send_token_expired_event')
         return
@@ -1375,7 +1361,7 @@ def send_token_expired_event():
 
 
 def connection_err():
-    '''Error counter.'''
+    '''Error counter'''
     global ERROR_TIMES  # pylint: disable=global-statement
     ERROR_TIMES += 1
     if ERROR_TIMES > 30:
@@ -1383,7 +1369,7 @@ def connection_err():
 
 
 def reset_err():
-    '''Error reset.'''
+    '''Error reset'''
     global ERROR_TIMES  # pylint: disable=global-statement
     record = int()
     while True:
@@ -1423,12 +1409,13 @@ def place_order_callback(order_state: constant.OrderState, order: dict):
 
 
 def future_quote_callback(exchange: Exchange, tick: TickFOPv1):
+    '''Future callback'''
     logging.info(exchange)
     logging.info(tick)
 
 
 def login_callback(security_type: constant.SecurityType):
-    '''login event callback.'''
+    '''Login event callback'''
     with mutex:
         global SERVER_STATUS  # pylint: disable=global-statement
         if security_type.value in ('STK', 'IND', 'FUT', 'OPT'):
@@ -1438,7 +1425,7 @@ def login_callback(security_type: constant.SecurityType):
 
 
 def sino_login():
-    '''Login into Sinopac'''
+    '''Login into sinopac'''
     token.login(
         person_id=TRADE_ID,
         passwd=TRADE_PASSWD,
@@ -1459,29 +1446,6 @@ def sino_login():
     )
 
 
-def sino_re_login():
-    '''Shioaji re login'''
-    global SERVER_STATUS, RE_LOGGING  # pylint: disable=global-statement
-    RE_LOGGING = True
-    token.logout()
-    SERVER_STATUS = 0
-    sino_login()
-    RE_LOGGING = False
-    return jsonify({'status': 'success'})
-
-
-def check_login_status():
-    '''API interceptor'''
-    if SERVER_STATUS != 4:
-        logging.warning('shioaji not ready')
-        if RE_LOGGING is False:
-            sino_re_login()
-            return None
-        resp = make_response({'status': 'shioaji not ready'}, 500)
-        return resp
-    return None
-
-
 def server_up_time():
     '''Record server up time'''
     global UP_TIME  # pylint: disable=global-statement
@@ -1496,5 +1460,4 @@ if __name__ == '__main__':
     threading.Thread(target=server_up_time).start()
     logging.info('Server token: %s', server_token)
     sino_login()
-    api.before_request(check_login_status)
     serve(api, host='0.0.0.0', port=sys.argv[1])

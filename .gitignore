@@ -143,3 +143,5 @@ mypy_result
 *.stats
 logs/*
 !.gitkeep
+data/stock_tse.csv
+data/stock_otc.csv
