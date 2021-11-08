@@ -9,10 +9,8 @@ import string
 import random
 import logging
 import sys
-import csv
 import os
 import typing
-import subprocess
 import requests
 import shioaji as sj
 from flask import Flask,  request, jsonify, make_response
@@ -84,27 +82,6 @@ def import_stock():
     if len(response) != 0:
         return jsonify(response)
     return jsonify({'status': 'fail'})
-
-
-@ api.route('/pyapi/basic/update-basic', methods=['GET'])
-def update_basic():
-    '''Update stock information
-    ---
-    tags:
-      - basic
-    responses:
-      200:
-        description: Success Response
-      500:
-        description: Server Not Ready
-    '''
-    try:
-        subprocess.run(['./scripts/update_basic.sh'], check=True)
-        fill_all_stock_list()
-    except subprocess.CalledProcessError:
-        connection_err()
-        return jsonify({'status': 'fail'})
-    return jsonify({'status': 'success'})
 
 
 @ api.route('/pyapi/basic/update/snapshot', methods=['GET'])
@@ -1256,22 +1233,12 @@ def fill_all_stock_list():
     '''Fill ALL_STOCK_NUM_LIST'''
     global ALL_STOCK_NUM_LIST  # pylint: disable=global-statement
     ALL_STOCK_NUM_LIST = []
-    try:
-        subprocess.run(['./scripts/update_basic.sh'], check=True)
-    except subprocess.CalledProcessError:
-        run_pkill()
-    with open('./data/stock_tse.csv', newline='', encoding='utf-8') as csvfile:
-        rows = csv.reader(csvfile)
-        for row in rows:
-            if row[1] == '公司代號':
-                continue
-            ALL_STOCK_NUM_LIST.append(row[1])
-    with open('./data/stock_otc.csv', newline='', encoding='utf-8') as csvfile:
-        rows = csv.reader(csvfile)
-        for row in rows:
-            if row[1] == '公司代號':
-                continue
-            ALL_STOCK_NUM_LIST.append(row[1])
+    for all_contract in token.Contracts.Stocks:
+        for day_trade_stock in all_contract:
+            if day_trade_stock.day_trade == 'Yes':
+                ALL_STOCK_NUM_LIST.append(day_trade_stock.code)
+    logging.info('Filling ALL_STOCK_NUM_LIST, total: %d',
+                 len(ALL_STOCK_NUM_LIST))
 
 
 def run_pkill():
@@ -1455,9 +1422,9 @@ def server_up_time():
 
 
 if __name__ == '__main__':
-    fill_all_stock_list()
     threading.Thread(target=reset_err).start()
     threading.Thread(target=server_up_time).start()
     logging.info('Server token: %s', server_token)
     sino_login()
+    fill_all_stock_list()
     serve(api, host='0.0.0.0', port=sys.argv[1])
