@@ -23,7 +23,7 @@ py-lint:
     - mypy --config-file=./mypy.ini ./src/main.py
 
 docker_build:
-  image: docker:20.10.10
+  image: docker:latest
   only:
     - main
   stage: build

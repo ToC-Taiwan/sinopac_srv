@@ -1,3 +1,5 @@
+# CHANGELOG
+
 ## v1.4.0 (2021-11-04)
 
 ### New feature
