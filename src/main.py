@@ -774,48 +774,6 @@ def set_trade_bot_host():
     return jsonify({'status': 'success'})
 
 
-@ api.route('/pyapi/test/streamtick', methods=['POST'])
-def test_streamtick():
-    '''Fake data for test
-    ---
-    tags:
-      - fakedata
-    parameters:
-      - in: body
-        name: count and time
-        description: Count and Time
-        required: true
-        schema:
-          $ref: '#/definitions/CountWithTotalTime'
-    responses:
-      200:
-        description: Success Response
-      500:
-        description: Server Not Ready
-    definitions:
-      CountWithTotalTime:
-        type: object
-        properties:
-          total_time:
-            type: integer
-          count:
-            type: integer
-      Date:
-        type: string
-    '''
-    if TRADE_BOT_HOST == '':
-        return jsonify({'status': 'TRADE_BOT_HOST is empty'})
-    trade_bot_url = 'http://'+TRADE_BOT_HOST+':' + \
-        trade_bot_port+'/trade-bot/data/target'
-    body = request.get_json()
-    req = session.get(trade_bot_url, headers={
-        'Content-Type': 'application/json', 'count': body['count']})
-    for data in req.json():
-        threading.Thread(target=streamtick_fake_data, args=[
-            data['stock_num'], data['close'], body['total_time']]).start()
-    return jsonify({'status': 'success'})
-
-
 @ api.route('/pyapi/trade/buy', methods=['POST'])
 def buy():
     '''Buy stock
@@ -1074,7 +1032,6 @@ def status():
         mutex_update_status(0)
     except error.TokenError:
         send_token_expired_event()
-        threading.Thread(target=run_pkill).start()
     return jsonify({'status': 'success'})
 
 
@@ -1245,49 +1202,6 @@ def run_pkill():
     '''Restart in container'''
     time.sleep(1)
     os._exit(0)  # pylint: disable=protected-access
-
-
-def streamtick_fake_data(stock_num: str, close: float, total_time: int):
-    '''Fake data generator'''
-    if TRADE_BOT_HOST == '':
-        logging.warning('TRADE_BOT_HOST is empty, streamtick_fake_data')
-        return
-    trade_bot_url = 'http://'+TRADE_BOT_HOST+':' + \
-        trade_bot_port+'/trade-bot/data/streamtick'
-    logging.info('ticking %s %f', stock_num, close)
-    for _ in range(total_time*10):
-        res = streamtick_pb2.StreamTickProto()
-        res.exchange = 'exchange test'
-        res.tick.code = stock_num
-        res.tick.date_time = datetime.strftime(
-            datetime.now(), '%Y-%m-%d %H:%M:%S.%f')
-        res.tick.open = close
-        res.tick.avg_price = close
-        res.tick.close = close
-        res.tick.high = close
-        res.tick.low = close
-        res.tick.amount = 60000
-        res.tick.total_amount = 60000000
-        res.tick.volume = 100
-        res.tick.total_volume = 2000
-        res.tick.tick_type = 1
-        res.tick.chg_type = 1
-        res.tick.price_chg = 0
-        res.tick.pct_chg = 0
-        res.tick.bid_side_total_vol = 100
-        res.tick.ask_side_total_vol = 5000
-        res.tick.bid_side_total_cnt = 200
-        res.tick.ask_side_total_cnt = 200
-        res.tick.suspend = 0
-        res.tick.simtrade = 0
-        try:
-            session.post(trade_bot_url, headers={
-                'Content-Type': 'application/protobuf'}, data=res.SerializeToString(), timeout=20)
-        except requests.exceptions.ConnectionError:
-            connection_err()
-            logging.error('fake stream data err: %s, %f, %d',
-                          stock_num, close, total_time)
-            return
 
 
 def send_trade_record(record):
