@@ -52,6 +52,7 @@ docker-deploy:
       --network tocvlan \
       --ip=172.20.10.221 \
       --restart always \
+      -v /$SERVER_USER/sinopac_srv_logs:/sinopac_srv/logs \
       -e PYPORT=$PYPORT \
       -e GOLANGPORT=$GOLANGPORT \
       -e TRADEID=$TRADEID \
@@ -71,18 +72,18 @@ stop_production:
   script:
     - chmod og= $ID_ED25519
     - apk update && apk add openssh-client
-    - ssh -i $ID_ED25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "mkdir -p /$SERVER_USER/sinopac_logs || true"
-    - ssh -i $ID_ED25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker logs sinopac_srv > /$SERVER_USER/sinopac_logs/sinopac_srv_log_$CI_COMMIT_SHORT_SHA.json"
+    - ssh -i $ID_ED25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "cd /$SERVER_USER/sinopac_srv_logs && tar -czvPf /sinopac_srv_logs_$CI_COMMIT_SHORT_SHA.tgz ./*.json"
+    - ssh -i $ID_ED25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "rm -rf /$SERVER_USER/sinopac_srv_logs || true"
+    - scp -i $ID_ED25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP:/sinopac_srv_logs_$CI_COMMIT_SHORT_SHA.tgz sinopac_srv_logs_$CI_COMMIT_SHORT_SHA.tgz
+    - ssh -i $ID_ED25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "rm -rf /sinopac_srv_logs_$CI_COMMIT_SHORT_SHA.tgz || true"
     - ssh -i $ID_ED25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker stop sinopac_srv"
     - ssh -i $ID_ED25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker system prune --volumes -f"
     - ssh -i $ID_ED25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "docker rmi $IMAGE_TAG"
-    - scp -i $ID_ED25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP:/$SERVER_USER/sinopac_logs/sinopac_srv_log_$CI_COMMIT_SHORT_SHA.json sinopac_srv_log_$CI_COMMIT_SHORT_SHA.json
-    - ssh -i $ID_ED25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "rm -rf /$SERVER_USER/sinopac_logs || true"
   when: manual
   environment:
     name: review/$CI_COMMIT_REF_NAME
     action: stop
   artifacts:
     paths:
-      - sinopac_srv_log_$CI_COMMIT_SHORT_SHA.json
+      - sinopac_srv_logs_$CI_COMMIT_SHORT_SHA.tgz
     expire_in: 2 week

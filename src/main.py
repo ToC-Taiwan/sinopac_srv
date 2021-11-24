@@ -20,24 +20,47 @@ from shioaji import BidAskSTKv1, TickSTKv1, Exchange, constant, error, TickFOPv1
 from protobuf import tradeevent_pb2, bidask_pb2, streamtick_pb2, \
     traderecord_pb2, snapshot_pb2, volumerank_pb2, entiretick_pb2, kbar_pb2
 
-log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-logging.basicConfig(level=logging.INFO, format=log_format, stream=sys.stdout)
-session = requests.Session()
+deployment = os.getenv('DEPLOYMENT')
+server_token = ''.join(random.choice(string.ascii_letters) for _ in range(25))
+
 api = Flask(__name__)
 swagger = Swagger(api)
+
+# Shioaji main instance
 token = sj.Shioaji()
-trade_bot_port = sys.argv[2]
+
+session = requests.Session()
 mutex = threading.Lock()
-deployment = os.getenv('DEPLOYMENT')
-server_token = ''.join(random.choice(string.ascii_letters) for x in range(25))
+
+log_format = str()
+extension_name = str()
+if deployment == 'docker':
+    log_format = '{"time":"%(asctime)s","user":"%(name)s","level":"%(levelname)s","message":"%(message)s"}'
+    extension_name = '.json'
+else:
+    log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    extension_name = '.log'
+
+console_handler = logging.StreamHandler()
+file_handler = logging.FileHandler(
+    './logs/'+datetime.now().strftime("%Y-%m-%dT%H%M")+extension_name)
+
+console_handler.setFormatter(logging.Formatter(log_format))
+file_handler.setFormatter(logging.Formatter(log_format))
+
+logger = logging.getLogger()
+logger.addHandler(console_handler)
+logger.addHandler(file_handler)
+logger.setLevel(logging.INFO)
 
 TRADE_BOT_HOST = str()
 if deployment == 'docker':
     TRADE_BOT_HOST = 'toc-trader.tocraw.com'
 
+trade_bot_port = sys.argv[2]
+
 SERVER_STATUS = int()
 UP_TIME = int()
-RE_LOGGING = False
 TRADE_ID = sys.argv[3]
 TRADE_PASSWD = sys.argv[4]
 CA_PASSWD = sys.argv[5]
@@ -67,7 +90,7 @@ def import_stock():
         contract = token.Contracts.Stocks[row]
         if contract is None:
             ALL_STOCK_NUM_LIST.remove(row)
-            logging.info('%s is no data', row)
+            logger.info('%s is no data', row)
             continue
         tmp = {
             'exchange': contract.exchange,
@@ -467,7 +490,7 @@ def bid_ask():
     stocks = body['stock_num_arr']
     for stock in stocks:
         BIDASK_SUB_LIST.append(stock)
-        logging.info('subscribe bid-adk %s', stock)
+        logger.info('subscribe bid-adk %s', stock)
         token.quote.subscribe(
             token.Contracts.Stocks[stock],
             quote_type=sj.constant.QuoteType.BidAsk,
@@ -509,7 +532,7 @@ def un_bid_ask():
     stocks = body['stock_num_arr']
     for stock in stocks:
         BIDASK_SUB_LIST.remove(stock)
-        logging.info('unsubscribe bid-adk %s', stock)
+        logger.info('unsubscribe bid-adk %s', stock)
         token.quote.unsubscribe(
             token.Contracts.Stocks[stock],
             quote_type=sj.constant.QuoteType.BidAsk,
@@ -533,7 +556,7 @@ def unstream_bid_ask_all():
     global BIDASK_SUB_LIST  # pylint: disable=global-statement
     if len(BIDASK_SUB_LIST) != 0:
         for stock in BIDASK_SUB_LIST:
-            logging.info('unsubscribe bid-adk %s', stock)
+            logger.info('unsubscribe bid-adk %s', stock)
             token.quote.unsubscribe(
                 token.Contracts.Stocks[stock],
                 quote_type=sj.constant.QuoteType.BidAsk,
@@ -566,7 +589,7 @@ def stream():
     stocks = body['stock_num_arr']
     for stock in stocks:
         QUOTE_SUB_LIST.append(stock)
-        logging.info('subscribe stock %s', stock)
+        logger.info('subscribe stock %s', stock)
         token.quote.subscribe(
             token.Contracts.Stocks[stock],
             quote_type=sj.constant.QuoteType.Tick,
@@ -598,7 +621,7 @@ def un_stream():
     stocks = body['stock_num_arr']
     for stock in stocks:
         QUOTE_SUB_LIST.remove(stock)
-        logging.info('unsubscribe stock %s', stock)
+        logger.info('unsubscribe stock %s', stock)
         token.quote.unsubscribe(
             token.Contracts.Stocks[stock],
             quote_type=sj.constant.QuoteType.Tick,
@@ -622,7 +645,7 @@ def unstream_all():
     global QUOTE_SUB_LIST  # pylint: disable=global-statement
     if len(QUOTE_SUB_LIST) != 0:
         for stock in QUOTE_SUB_LIST:
-            logging.info('unsubscribe stock %s', stock)
+            logger.info('unsubscribe stock %s', stock)
             token.quote.unsubscribe(
                 token.Contracts.Stocks[stock],
                 quote_type=sj.constant.QuoteType.Tick,
@@ -665,7 +688,7 @@ def sub_future():
     futures = body['future_num_arr']
     for future in futures:
         FUTURE_SUB_LIST.append(future)
-        logging.info('subscribe future %s', future)
+        logger.info('subscribe future %s', future)
         token.quote.subscribe(
             token.Contracts.Futures[future],
             quote_type=sj.constant.QuoteType.Tick,
@@ -697,7 +720,7 @@ def unsub_future():
     futures = body['future_num_arr']
     for future in futures:
         FUTURE_SUB_LIST.remove(future)
-        logging.info('unsubscribe future %s', future)
+        logger.info('unsubscribe future %s', future)
         token.quote.unsubscribe(
             token.Contracts.Futures[future],
             quote_type=sj.constant.QuoteType.Tick,
@@ -721,7 +744,7 @@ def unstream_all_future():
     global FUTURE_SUB_LIST  # pylint: disable=global-statement
     if len(FUTURE_SUB_LIST) != 0:
         for future in FUTURE_SUB_LIST:
-            logging.info('unsubscribe future %s', future)
+            logger.info('unsubscribe future %s', future)
             token.quote.unsubscribe(
                 token.Contracts.Futures[future],
                 quote_type=sj.constant.QuoteType.Tick,
@@ -774,7 +797,7 @@ def set_trade_bot_host():
     global TRADE_BOT_HOST  # pylint: disable=global-statement
     trade_bot_host = request.headers['X-Trade-Bot-Host']
     TRADE_BOT_HOST = trade_bot_host
-    logging.warning('Change TRADE_BOT_HOST to %s', TRADE_BOT_HOST)
+    logger.warning('Change TRADE_BOT_HOST to %s', TRADE_BOT_HOST)
     return jsonify({'status': 'success'})
 
 
@@ -1100,7 +1123,7 @@ def status_callback(reply: typing.List[sj.order.Trade]):
 def quote_callback_v1(exchange: Exchange, tick: TickSTKv1):
     '''Sinopac's quiote callback v1'''
     if TRADE_BOT_HOST == '':
-        logging.warning('TRADE_BOT_HOST is empty, quote_callback_v1')
+        logger.warning('TRADE_BOT_HOST is empty, quote_callback_v1')
         return
     trade_bot_url = 'http://'+TRADE_BOT_HOST+':' + \
         trade_bot_port+'/trade-bot/data/streamtick'
@@ -1133,15 +1156,15 @@ def quote_callback_v1(exchange: Exchange, tick: TickSTKv1):
             'Content-Type': 'application/protobuf'}, data=res.SerializeToString(), timeout=20)
     except requests.exceptions.ConnectionError:
         connection_err()
-        logging.error('quote callback err: %s, %s', tick.code,
-                      datetime.strftime(tick.datetime, '%Y-%m-%d %H:%M:%S.%f'))
+        logger.error('quote callback err: %s, %s', tick.code,
+                     datetime.strftime(tick.datetime, '%Y-%m-%d %H:%M:%S.%f'))
         return
 
 
 def bid_ask_callback(exchange: Exchange, bidask: BidAskSTKv1):
     '''Sinopac's bidask callback'''
     if TRADE_BOT_HOST == '':
-        logging.warning('TRADE_BOT_HOST is empty, bid_ask_callback')
+        logger.warning('TRADE_BOT_HOST is empty, bid_ask_callback')
         return
     trade_bot_url = 'http://'+TRADE_BOT_HOST+':' + \
         trade_bot_port+'/trade-bot/data/bid-ask'
@@ -1163,15 +1186,15 @@ def bid_ask_callback(exchange: Exchange, bidask: BidAskSTKv1):
             'Content-Type': 'application/protobuf'}, data=res.SerializeToString(), timeout=20)
     except requests.exceptions.ConnectionError:
         connection_err()
-        logging.error('bidask callback err: %s, %s', bidask.code,
-                      datetime.strftime(bidask.datetime, '%Y-%m-%d %H:%M:%S.%f'))
+        logger.error('bidask callback err: %s, %s', bidask.code,
+                     datetime.strftime(bidask.datetime, '%Y-%m-%d %H:%M:%S.%f'))
         return
 
 
 def event_callback(resp_code: int, event_code: int, info: str, event: str):
     '''Sinopac's event callback'''
     if TRADE_BOT_HOST == '':
-        logging.warning('TRADE_BOT_HOST is empty, event_callback')
+        logger.warning('TRADE_BOT_HOST is empty, event_callback')
         return
     trade_bot_url = 'http://'+TRADE_BOT_HOST+':' + \
         trade_bot_port+'/trade-bot/trade-event'
@@ -1185,8 +1208,8 @@ def event_callback(resp_code: int, event_code: int, info: str, event: str):
             'Content-Type': 'application/protobuf'}, data=res.SerializeToString(), timeout=20)
     except requests.exceptions.ConnectionError:
         connection_err()
-        logging.error('event callback err: %d, %d, %s, %s',
-                      resp_code, event_code, info, event)
+        logger.error('event callback err: %d, %d, %s, %s',
+                     resp_code, event_code, info, event)
         return
 
 
@@ -1198,8 +1221,8 @@ def fill_all_stock_list():
         for day_trade_stock in all_contract:
             if day_trade_stock.day_trade == 'Yes':
                 ALL_STOCK_NUM_LIST.append(day_trade_stock.code)
-    logging.info('Filling ALL_STOCK_NUM_LIST, total: %d',
-                 len(ALL_STOCK_NUM_LIST))
+    logger.info('Filling ALL_STOCK_NUM_LIST, total: %d',
+                len(ALL_STOCK_NUM_LIST))
 
 
 def run_pkill():
@@ -1211,7 +1234,7 @@ def run_pkill():
 def send_trade_record(record):
     '''Sinopac status's callback'''
     if TRADE_BOT_HOST == '':
-        logging.warning('TRADE_BOT_HOST is empty, send_trade_record')
+        logger.warning('TRADE_BOT_HOST is empty, send_trade_record')
         return
     trade_bot_url = 'http://'+TRADE_BOT_HOST+':' + \
         trade_bot_port+'/trade-bot/trade-record'
@@ -1220,14 +1243,14 @@ def send_trade_record(record):
             'Content-Type': 'application/protobuf'}, data=record, timeout=20)
     except requests.exceptions.ConnectionError:
         connection_err()
-        logging.error('send trade record err: %s', record)
+        logger.error('send trade record err: %s', record)
         return
 
 
 def send_token_expired_event():
     '''Sinopac's event callback'''
     if TRADE_BOT_HOST == '':
-        logging.warning('TRADE_BOT_HOST is empty, send_token_expired_event')
+        logger.warning('TRADE_BOT_HOST is empty, send_token_expired_event')
         return
     trade_bot_url = 'http://'+TRADE_BOT_HOST+':' + \
         trade_bot_port+'/trade-bot/trade-event'
@@ -1241,7 +1264,7 @@ def send_token_expired_event():
             'Content-Type': 'application/protobuf'}, data=res.SerializeToString(), timeout=20)
     except requests.exceptions.ConnectionError:
         connection_err()
-        logging.error('send token expired event err')
+        logger.error('send token expired event err')
         return
 
 
@@ -1259,7 +1282,7 @@ def reset_err():
     record = int()
     while True:
         if ERROR_TIMES == record and record > 0:
-            logging.warning('%d error reset', ERROR_TIMES)
+            logger.warning('%d error reset', ERROR_TIMES)
             ERROR_TIMES = 0
         record = ERROR_TIMES
         time.sleep(30)
@@ -1268,35 +1291,35 @@ def reset_err():
 def place_order_callback(order_state: constant.OrderState, order: dict):
     '''Place order callback'''
     if search('DEAL', order_state) is None:
-        logging.info('Order: %s %s %s %s %s %s %.2f %d %d %s',
-                     order_state,
-                     order['operation']['op_type'],
-                     order['operation']['op_code'],
-                     order['operation']['op_msg'],
-                     order['order']['id'],
-                     order['order']['action'],
-                     order['order']['price'],
-                     order['order']['quantity'],
-                     order['status']['exchange_ts'],
-                     order['contract']['code'],
-                     )
+        logger.info('Order: %s %s %s %s %s %s %.2f %d %d %s',
+                    order_state,
+                    order['operation']['op_type'],
+                    order['operation']['op_code'],
+                    order['operation']['op_msg'],
+                    order['order']['id'],
+                    order['order']['action'],
+                    order['order']['price'],
+                    order['order']['quantity'],
+                    order['status']['exchange_ts'],
+                    order['contract']['code'],
+                    )
     else:
-        logging.info('Deal: %s %s %s %s %s %.2f %d %d',
-                     order_state,
-                     order['trade_id'],
-                     order['exchange_seq'],
-                     order['action'],
-                     order['code'],
-                     order['price'],
-                     order['quantity'],
-                     order['ts'],
-                     )
+        logger.info('Deal: %s %s %s %s %s %.2f %d %d',
+                    order_state,
+                    order['trade_id'],
+                    order['exchange_seq'],
+                    order['action'],
+                    order['code'],
+                    order['price'],
+                    order['quantity'],
+                    order['ts'],
+                    )
 
 
 def future_quote_callback(exchange: Exchange, tick: TickFOPv1):
     '''Future callback'''
-    logging.info(exchange)
-    logging.info(tick)
+    logger.info(exchange)
+    logger.info(tick)
 
 
 def login_callback(security_type: constant.SecurityType):
@@ -1305,8 +1328,8 @@ def login_callback(security_type: constant.SecurityType):
         global SERVER_STATUS  # pylint: disable=global-statement
         if security_type.value in ('STK', 'IND', 'FUT', 'OPT'):
             SERVER_STATUS += 1
-            logging.warning('login step: %d/4, %s',
-                            SERVER_STATUS, security_type)
+            logger.warning('login step: %d/4, %s',
+                           SERVER_STATUS, security_type)
 
 
 def sino_login():
@@ -1342,7 +1365,7 @@ def server_up_time():
 if __name__ == '__main__':
     threading.Thread(target=reset_err).start()
     threading.Thread(target=server_up_time).start()
-    logging.info('Server token: %s', server_token)
+    logger.info('Server token: %s', server_token)
     sino_login()
     fill_all_stock_list()
     serve(api, host='0.0.0.0', port=sys.argv[1])
