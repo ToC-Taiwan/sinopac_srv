@@ -168,6 +168,7 @@ def entiretick():
     tmp_length = []
     total_count = len(ticks.ts)
     tmp_length.append(len(ticks.close))
+    tmp_length.append(len(ticks.tick_type))
     tmp_length.append(len(ticks.volume))
     tmp_length.append(len(ticks.bid_price))
     tmp_length.append(len(ticks.bid_volume))
@@ -187,6 +188,7 @@ def entiretick():
         tmp.bid_volume = ticks.bid_volume[pos]
         tmp.ask_price = ticks.ask_price[pos]
         tmp.ask_volume = ticks.ask_volume[pos]
+        tmp.tick_type = ticks.tick_type[pos]
         response.data.append(tmp)
     resp = make_response(response.SerializeToString())
     resp.headers['Content-Type'] = 'application/protobuf'
@@ -289,6 +291,7 @@ def tse_entiretick():
     tmp_length = []
     total_count = len(ticks.ts)
     tmp_length.append(len(ticks.close))
+    tmp_length.append(len(ticks.tick_type))
     tmp_length.append(len(ticks.volume))
     tmp_length.append(len(ticks.bid_price))
     tmp_length.append(len(ticks.bid_volume))
@@ -308,6 +311,7 @@ def tse_entiretick():
         tmp.bid_volume = ticks.bid_volume[pos]
         tmp.ask_price = ticks.ask_price[pos]
         tmp.ask_volume = ticks.ask_volume[pos]
+        tmp.tick_type = ticks.tick_type[pos]
         response.data.append(tmp)
     resp = make_response(response.SerializeToString())
     resp.headers['Content-Type'] = 'application/protobuf'

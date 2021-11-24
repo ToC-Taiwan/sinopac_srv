@@ -14,7 +14,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\'trade_bot_protobuf/src/entiretick.proto\x12\x13\x65ntiretick_protobuf\"H\n\x12\x45ntireTickArrProto\x12\x32\n\x04\x64\x61ta\x18\x01 \x03(\x0b\x32$.entiretick_protobuf.EntireTickProto\"\x8a\x01\n\x0f\x45ntireTickProto\x12\n\n\x02ts\x18\x01 \x01(\x03\x12\r\n\x05\x63lose\x18\x02 \x01(\x01\x12\x0e\n\x06volume\x18\x03 \x01(\x03\x12\x11\n\tbid_price\x18\x04 \x01(\x01\x12\x12\n\nbid_volume\x18\x05 \x01(\x03\x12\x11\n\task_price\x18\x06 \x01(\x01\x12\x12\n\nask_volume\x18\x07 \x01(\x03\x42\x17Z\x15pkg/models/entiretickb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\'trade_bot_protobuf/src/entiretick.proto\x12\x13\x65ntiretick_protobuf\"H\n\x12\x45ntireTickArrProto\x12\x32\n\x04\x64\x61ta\x18\x01 \x03(\x0b\x32$.entiretick_protobuf.EntireTickProto\"\x9d\x01\n\x0f\x45ntireTickProto\x12\n\n\x02ts\x18\x01 \x01(\x03\x12\r\n\x05\x63lose\x18\x02 \x01(\x01\x12\x0e\n\x06volume\x18\x03 \x01(\x03\x12\x11\n\tbid_price\x18\x04 \x01(\x01\x12\x12\n\nbid_volume\x18\x05 \x01(\x03\x12\x11\n\task_price\x18\x06 \x01(\x01\x12\x12\n\nask_volume\x18\x07 \x01(\x03\x12\x11\n\ttick_type\x18\x08 \x01(\x03\x42\x17Z\x15pkg/models/entiretickb\x06proto3')
 
 
 
@@ -41,5 +41,5 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _ENTIRETICKARRPROTO._serialized_start=64
   _ENTIRETICKARRPROTO._serialized_end=136
   _ENTIRETICKPROTO._serialized_start=139
-  _ENTIRETICKPROTO._serialized_end=277
+  _ENTIRETICKPROTO._serialized_end=296
 # @@protoc_insertion_point(module_scope)
