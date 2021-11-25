@@ -26,14 +26,13 @@ server_token = ''.join(random.choice(string.ascii_letters) for _ in range(25))
 api = Flask(__name__)
 swagger = Swagger(api)
 
-# Shioaji main instance
 token = sj.Shioaji()
-
 session = requests.Session()
 mutex = threading.Lock()
 
 log_format = str()
 extension_name = str()
+
 if deployment == 'docker':
     log_format = '{"time":"%(asctime)s","user":"%(name)s","level":"%(levelname)s","message":"%(message)s"}'
     extension_name = '.json'
@@ -54,13 +53,12 @@ logger.addHandler(file_handler)
 logger.setLevel(logging.INFO)
 
 TRADE_BOT_HOST = str()
-if deployment == 'docker':
-    TRADE_BOT_HOST = 'toc-trader.tocraw.com'
-
-trade_bot_port = sys.argv[2]
+TRADE_BOT_PORT = sys.argv[2]
 
 SERVER_STATUS = int()
 UP_TIME = int()
+ERROR_TIMES = int()
+
 TRADE_ID = sys.argv[3]
 TRADE_PASSWD = sys.argv[4]
 CA_PASSWD = sys.argv[5]
@@ -70,7 +68,6 @@ ALL_STOCK_NUM_LIST: typing.List[str] = []
 BIDASK_SUB_LIST: typing.List[str] = []
 QUOTE_SUB_LIST: typing.List[str] = []
 FUTURE_SUB_LIST: typing.List[str] = []
-ERROR_TIMES = int()
 
 
 @ api.route('/pyapi/basic/importstock', methods=['GET'])
@@ -1126,7 +1123,7 @@ def quote_callback_v1(exchange: Exchange, tick: TickSTKv1):
         logger.warning('TRADE_BOT_HOST is empty, quote_callback_v1')
         return
     trade_bot_url = 'http://'+TRADE_BOT_HOST+':' + \
-        trade_bot_port+'/trade-bot/data/streamtick'
+        TRADE_BOT_PORT+'/trade-bot/data/streamtick'
     res = streamtick_pb2.StreamTickProto()
     res.exchange = exchange
     res.tick.code = tick.code
@@ -1167,7 +1164,7 @@ def bid_ask_callback(exchange: Exchange, bidask: BidAskSTKv1):
         logger.warning('TRADE_BOT_HOST is empty, bid_ask_callback')
         return
     trade_bot_url = 'http://'+TRADE_BOT_HOST+':' + \
-        trade_bot_port+'/trade-bot/data/bid-ask'
+        TRADE_BOT_PORT+'/trade-bot/data/bid-ask'
     res = bidask_pb2.BidAskProto()
     res.exchange = exchange
     res.bid_ask.code = bidask.code
@@ -1194,10 +1191,11 @@ def bid_ask_callback(exchange: Exchange, bidask: BidAskSTKv1):
 def event_callback(resp_code: int, event_code: int, info: str, event: str):
     '''Sinopac's event callback'''
     if TRADE_BOT_HOST == '':
-        logger.warning('TRADE_BOT_HOST is empty, event_callback')
+        logger.warning('Response Code: %d, Info: %s, Event Code: %d, Event: %s',
+                       resp_code, info, event_code, event)
         return
     trade_bot_url = 'http://'+TRADE_BOT_HOST+':' + \
-        trade_bot_port+'/trade-bot/trade-event'
+        TRADE_BOT_PORT+'/trade-bot/trade-event'
     res = tradeevent_pb2.EventProto()
     res.resp_code = resp_code
     res.event_code = event_code
@@ -1237,7 +1235,7 @@ def send_trade_record(record):
         logger.warning('TRADE_BOT_HOST is empty, send_trade_record')
         return
     trade_bot_url = 'http://'+TRADE_BOT_HOST+':' + \
-        trade_bot_port+'/trade-bot/trade-record'
+        TRADE_BOT_PORT+'/trade-bot/trade-record'
     try:
         session.post(trade_bot_url, headers={
             'Content-Type': 'application/protobuf'}, data=record, timeout=20)
@@ -1253,7 +1251,7 @@ def send_token_expired_event():
         logger.warning('TRADE_BOT_HOST is empty, send_token_expired_event')
         return
     trade_bot_url = 'http://'+TRADE_BOT_HOST+':' + \
-        trade_bot_port+'/trade-bot/trade-event'
+        TRADE_BOT_PORT+'/trade-bot/trade-event'
     res = tradeevent_pb2.EventProto()
     res.resp_code = 500
     res.event_code = 401
@@ -1291,28 +1289,28 @@ def reset_err():
 def place_order_callback(order_state: constant.OrderState, order: dict):
     '''Place order callback'''
     if search('DEAL', order_state) is None:
-        logger.info('Order: %s %s %s %s %s %s %.2f %d %d %s',
-                    order_state,
-                    order['operation']['op_type'],
-                    order['operation']['op_code'],
-                    order['operation']['op_msg'],
-                    order['order']['id'],
+        logger.info('%s %s %.2f %d %s %d %s %s %s %s',
+                    order['contract']['code'],
                     order['order']['action'],
                     order['order']['price'],
                     order['order']['quantity'],
+                    order_state,
                     order['status']['exchange_ts'],
-                    order['contract']['code'],
+                    order['order']['id'],
+                    order['operation']['op_type'],
+                    order['operation']['op_code'],
+                    order['operation']['op_msg'],
                     )
     else:
-        logger.info('Deal: %s %s %s %s %s %.2f %d %d',
-                    order_state,
-                    order['trade_id'],
-                    order['exchange_seq'],
-                    order['action'],
+        logger.info('%s %s %.2f %d %s %d %s %s',
                     order['code'],
+                    order['action'],
                     order['price'],
                     order['quantity'],
+                    order_state,
                     order['ts'],
+                    order['trade_id'],
+                    order['exchange_seq'],
                     )
 
 
@@ -1339,11 +1337,6 @@ def sino_login():
         passwd=TRADE_PASSWD,
         contracts_cb=login_callback
     )
-    token.set_order_callback(place_order_callback)
-    token.quote.set_event_callback(event_callback)
-    token.quote.set_on_tick_stk_v1_callback(quote_callback_v1)
-    token.quote.set_on_bidask_stk_v1_callback(bid_ask_callback)
-    token.quote.set_on_tick_fop_v1_callback(future_quote_callback)
     while True:
         if SERVER_STATUS == 4:
             break
@@ -1352,6 +1345,14 @@ def sino_login():
         ca_passwd=CA_PASSWD,
         person_id=TRADE_ID,
     )
+
+
+def set_sinopac_callback():
+    token.set_order_callback(place_order_callback)
+    token.quote.set_event_callback(event_callback)
+    token.quote.set_on_tick_stk_v1_callback(quote_callback_v1)
+    token.quote.set_on_bidask_stk_v1_callback(bid_ask_callback)
+    token.quote.set_on_tick_fop_v1_callback(future_quote_callback)
 
 
 def server_up_time():
@@ -1365,7 +1366,8 @@ def server_up_time():
 if __name__ == '__main__':
     threading.Thread(target=reset_err).start()
     threading.Thread(target=server_up_time).start()
-    logger.info('Server token: %s', server_token)
+    set_sinopac_callback()
     sino_login()
     fill_all_stock_list()
+    logger.info('Server token: %s', server_token)
     serve(api, host='0.0.0.0', port=sys.argv[1])
