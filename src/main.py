@@ -394,6 +394,75 @@ def lastcount():
     return jsonify({'status': 'fail'})
 
 
+@ api.route('/pyapi/history/lastcount/multi-date', methods=['POST'])
+def lastcount_multi_date():
+    '''Get stock's last count in a date range
+    ---
+    tags:
+      - data
+    parameters:
+      - in: body
+        name: stock array
+        description: Stock array
+        required: true
+        schema:
+          $ref: '#/definitions/StockArrWithDateArr'
+    responses:
+      200:
+        description: Success Response
+      500:
+        description: Server Not Ready
+    definitions:
+      StockArrWithDateArr:
+        type: object
+        properties:
+          stock_num_arr:
+            type: array
+            items:
+              $ref: '#/definitions/StockNum'
+          date_arr:
+            type: array
+            items:
+              $ref: '#/definitions/Date'
+      StockNum:
+          type: string
+      Date:
+          type: string
+    '''
+    body = request.get_json()
+    stock_arr = body['stock_num_arr']
+    date_arr = body['date_arr']
+    response = []
+    for stock in stock_arr:
+        close_arr = []
+        for date in date_arr:
+            last_count = token.quote.ticks(
+                contract=token.Contracts.Stocks[stock],
+                date=date,
+                query_type=sj.constant.TicksQueryType.LastCount,
+                last_cnt=1,
+            )
+            tmp_close = 0
+            if len(last_count.close) != 0:
+                tmp_close = last_count.close[0]
+            else:
+                logger.warning('%s has no close on %s', stock, date)
+                continue
+            tmp = {
+                'date': date,
+                'close': tmp_close,
+            }
+            close_arr.append(tmp)
+        stock_close_arr = {
+            'stock_num': stock,
+            'close_arr': close_arr,
+        }
+        response.append(stock_close_arr)
+    if len(response) != 0:
+        return jsonify(response)
+    return jsonify({'status': 'fail'})
+
+
 @ api.route('/pyapi/trade/volumerank', methods=['GET'])
 def volumerank():
     '''Get rank 200 volume and close
