@@ -277,6 +277,66 @@ def fetch_kbar():
     return resp
 
 
+@ api.route('/pyapi/history/kbar/tse', methods=['POST'])
+def fetch_tse_kbar():
+    '''Get tse kbar in date range
+    ---
+    tags:
+      - data
+    parameters:
+      - in: body
+        name: Date range
+        description: Date range
+        required: true
+        schema:
+          $ref: '#/definitions/DateRange'
+    responses:
+      200:
+        description: Success Response
+      500:
+        description: Server Not Ready
+    definitions:
+      DateRange:
+        type: object
+        properties:
+          start_date:
+            type: string
+          end_date:
+            type: string
+    '''
+    response = kbar_pb2.KbarArrProto()
+    body = request.get_json()
+    kbar = token.kbars(
+        contract=token.Contracts.Indexs.TSE.TSE001,
+        start=body['start_date'],
+        end=body['end_date'],
+    )
+    tmp_length = []
+    total_count = len(kbar.ts)
+    tmp_length.append(len(kbar.Close))
+    tmp_length.append(len(kbar.Open))
+    tmp_length.append(len(kbar.High))
+    tmp_length.append(len(kbar.Low))
+    tmp_length.append(len(kbar.Volume))
+    for length in tmp_length:
+        if length - total_count != 0:
+            resp = make_response(response.SerializeToString())
+            resp.headers['Content-Type'] = 'application/protobuf'
+            return resp
+    for pos in range(total_count):
+        tmp = kbar_pb2.KbarProto()
+        tmp.ts = kbar.ts[pos]
+        tmp.Close = kbar.Close[pos]
+        tmp.Open = kbar.Open[pos]
+        tmp.High = kbar.High[pos]
+        tmp.Low = kbar.Low[pos]
+        tmp.Volume = kbar.Volume[pos]
+        response.data.append(tmp)
+    resp = make_response(response.SerializeToString())
+    resp.headers['Content-Type'] = 'application/protobuf'
+    return resp
+
+
 @ api.route('/pyapi/history/tse_entiretick', methods=['POST'])
 def tse_entiretick():
     '''Get all tse tick in one date
@@ -389,6 +449,43 @@ def lastcount():
             'close': last_count.close,
         }
         response.append(tmp)
+    if len(response) != 0:
+        return jsonify(response)
+    return jsonify({'status': 'fail'})
+
+
+@ api.route('/pyapi/history/lastcount/tse', methods=['POST'])
+def lastcount_tse():
+    '''Get tse's last count
+    ---
+    tags:
+      - data
+    parameters:
+      - in: header
+        name: X-Date
+        description: Date
+        required: true
+    responses:
+      200:
+        description: Success Response
+      500:
+        description: Server Not Ready
+    '''
+    date = request.headers['X-Date']
+    response = []
+    last_count = token.quote.ticks(
+        contract=token.Contracts.Indexs.TSE.TSE001,
+        date=date,
+        query_type=sj.constant.TicksQueryType.LastCount,
+        last_cnt=1,
+    )
+    tmp = {
+        'date': date,
+        'code': 'TSE001',
+        'time': last_count.ts,
+        'close': last_count.close,
+    }
+    response.append(tmp)
     if len(response) != 0:
         return jsonify(response)
     return jsonify({'status': 'fail'})
