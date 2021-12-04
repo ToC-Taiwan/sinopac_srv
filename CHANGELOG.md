@@ -1,5 +1,25 @@
 # CHANGELOG
 
+## Unreleased (2021-12-01)
+
+### New feature
+
+- **tse**: :memo: add tse lastcount and kbar([`46a51c2`](https://gitlab.tocraw.com/root/sinopac_srv/commit/46a51c2e9fddd213d29805a09e1a830a3cc31fbf)) (@TimHsu211104@DevContainer)
+- **lastcount**: :pencil2: add multi date lastcount for biasrate([`0ccb179`](https://gitlab.tocraw.com/root/sinopac_srv/commit/0ccb179aa62b959703c4d60392d0792ed95efaa4)) (@TimHsu211104@DevContainer)
+- **log**: :mute: modify place order callback message, set callback before login([`874f098`](https://gitlab.tocraw.com/root/sinopac_srv/commit/874f098f1266fbaf8fac184906b3880ee746a4bd)) (@TimHsu211104@DevContainer)
+- **logger**: :monocle_face: add log json file, ci compress log files upload to gitlab([`f0dafb3`](https://gitlab.tocraw.com/root/sinopac_srv/commit/f0dafb3f1d5358f499b47f1e6971ad2d915512d4)) (@TimHsu211104@DevContainer)
+- **ticktype**: :globe_with_meridians: add sinopac native tick_type in entiretick and tse_entiretick([`a3d4e46`](https://gitlab.tocraw.com/root/sinopac_srv/commit/a3d4e46a476dfa428a7dc35d66d98e2b5e45db16)) (@TimHsu211104@DevContainer)
+- **shioaji**: :heavy_plus_sign: sinopac update to dev5([`d71d925`](https://gitlab.tocraw.com/root/sinopac_srv/commit/d71d92500b150d355ed32582d992f5ba1cba8427)) (@TimHsu211104@DevContainer)
+- **ci**: :truck: change log file name and path([`26be410`](https://gitlab.tocraw.com/root/sinopac_srv/commit/26be410477e3a96ada108fa8c2a6b2eeef6e84f6)) (@TimHsu211104@DevContainer)
+- **ci**: :boom: change logs path to root([`e96b0c2`](https://gitlab.tocraw.com/root/sinopac_srv/commit/e96b0c2597e5f4baea8e2470fce599455f99fba0)) (@TimHsu211104@DevContainer)
+
+### Bugs fixed
+
+- **ci**: :card_file_box: add mkdir -p /$SERVER_USER/sinopac_logs([`60c14ff`](https://gitlab.tocraw.com/root/sinopac_srv/commit/60c14ffab8c49544b659a3dc2068a2892ac1e3ad)) (@TimHsu211104@DevContainer)
+- **fakedata**: :egg: remove fake data api, remove sinopac token error auto-pkill([`11f7d02`](https://gitlab.tocraw.com/root/sinopac_srv/commit/11f7d024c5791121c49098c5e38a1da8babc1079)) (@TimHsu211104@DevContainer)
+
+## v1.5.0 (2021-11-08)
+
 ## v1.4.0 (2021-11-04)
 
 ### New feature
